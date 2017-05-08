@@ -1,0 +1,12 @@
+name: crclib
+version: 1.0.0
+authors:
+- Nam T. Nguyen <namnguyen@google.com>
+description: Collection of cyclic redundancy check (CRC) routines.
+author: Nam T. Nguyen <namnguyen@google.com>
+homepage: https://github.com/google/crclib.dart
+dependencies:
+  tuple: ">=1.0.0 <2.0.0"
+dev_dependencies:
+  benchmark_harness: ">=1.0.0 <2.0.0"
+  test: ">=0.12.20 <1.0.0"
