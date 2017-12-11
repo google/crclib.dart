@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:async';
-
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 import 'package:crclib/crclib.dart';
@@ -38,7 +36,7 @@ class CrcBenchmark extends BenchmarkBase {
   final CrcConstructor _constructor;
   final int _size;
 
-  const CrcBenchmark(this._constructor, this._size)
+  CrcBenchmark(this._constructor, this._size)
       : super('${_constructor().runtimeType}_${_size}');
 
   void run() {
