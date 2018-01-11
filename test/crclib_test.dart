@@ -26,6 +26,8 @@ main() {
     final actual = inputs.map((i) => reflect(i, 8));
     expect(actual, expected);
     expect(reflect(0x3e23, 3), 6);
+    expect(reflect(0xF000000000000000, 64), 0x0F);
+    expect(reflect(0x000000000000000F, 3), 0x7);
   });
 
   const inputs = const [
@@ -91,7 +93,7 @@ main() {
       () => new Crc64Xz(): const [
         0x995DC9BBDF1939FA,
         0xB1CB31BBB4A2B2BE,
-        0x5B5EB8C2E54AA1C4
+        0x5B5EB8C2E54AA1C4,
       ],
     });
   });

@@ -140,8 +140,8 @@ class _NormalSink extends _CrcSink {
 
   void _crc64Loop(List<int> chunk, int start, int end) {
     for (int b in chunk.getRange(start, end)) {
-      _value =
-          _table[(_value >> 56) ^ b] ^ ((_value << 8) & 0xFFFFFFFFFFFFFFFF);
+      _value = _table[((_value >> 56) & 0xFF) ^ b] ^
+          ((_value << 8) & 0xFFFFFFFFFFFFFFFF);
     }
   }
 
@@ -189,7 +189,8 @@ class _ReflectedSink extends _CrcSink {
 
   void _crcLoop(List<int> chunk, int start, int end) {
     for (int b in chunk.getRange(start, end)) {
-      _value = (_table[(_value ^ b) & 0xFF] ^ (_value >> 8));
+      _value =
+          (_table[(_value ^ b) & 0xFF] ^ ((_value >> 8) & 0xFFFFFFFFFFFFFF));
     }
   }
 
