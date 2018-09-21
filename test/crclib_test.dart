@@ -13,11 +13,13 @@
 // limitations under the License.
 
 import 'dart:async';
-import 'dart:convert';
+import 'package:dart2_constant/convert.dart';
 
 import 'package:test/test.dart';
 
 import 'package:crclib/crclib.dart';
+
+typedef ParametricCrc _ConsFunc();
 
 main() {
   test('reflect', () {
@@ -36,14 +38,14 @@ main() {
     'The quick brown fox jumps over the lazy dog',
   ];
 
-  Future testOneAlgo(Function constructor, final List<int> expected) async {
+  Future testOneAlgo(_ConsFunc constructor, final List<int> expected) async {
     Iterable<int> actual =
-        inputs.map((s) => constructor().convert((UTF8.encode(s))));
+        inputs.map((s) => constructor().convert(utf8.encode(s)));
     expect(actual, expected);
 
     var futures = inputs.map((s) =>
         new Stream.fromIterable([s.substring(0, 5), s.substring(5)])
-            .transform(UTF8.encoder)
+            .transform(utf8.encoder)
             .transform(constructor())
             .single);
     actual = await Future.wait(futures);
