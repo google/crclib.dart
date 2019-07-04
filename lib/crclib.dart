@@ -357,6 +357,11 @@ class Crc16Usb extends ParametricCrc {
   Crc16Usb() : super(16, 0x8005, 0xFFFF, 0xFFFF);
 }
 
+// CRC-16 variant used in MCRF4XX
+class Crc16MCRF4XX extends ParametricCrc {
+  Crc16MCRF4XX() : super(16, 0x1021, 0xFFFF, 0x0000);
+}
+
 /// CRC-8 variant used in WCDMA (UMTS).
 class Crc8Wcdma extends ParametricCrc {
   Crc8Wcdma() : super(8, 0x9B, 0, 0);
