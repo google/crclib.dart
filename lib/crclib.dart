@@ -372,3 +372,10 @@ class Crc8Atm extends ParametricCrc {
 class Crc8Rohc extends ParametricCrc {
   Crc8Rohc() : super(8, 0x07, 0xFF, 0);
 }
+
+/// CRC-8 
+class Crc8 extends ParametricCrc {
+  Crc8()
+      : super(8, 0x07, 0x00, 0x0,
+            inputReflected: false, outputReflected: false);
+}
