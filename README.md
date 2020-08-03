@@ -9,7 +9,7 @@ The easiest way to use this library is to call `convert` on the instance of
 the desired CRC routine.
 
 ```
-  new Crc32Zlib().convert(UTF8.encode('123456789')) == 0xCBF43926
+  new Crc32Zlib().convert(utf8.encode('123456789')) == 0xCBF43926
 ```
 
 Another supported use case is as stream transformers.
