@@ -111,7 +111,8 @@ typedef void CrcLoopFunction(List<int> chunk, int start, int end);
 // Note for maintainers: Try not to call any function in these loops. Function
 // calls require boxing and unboxing.
 class _NormalSink extends _CrcSink {
-  _NormalSink(_table, _value, _finalMask, _outputSink, int width)
+  _NormalSink(List<int> _table, int _value, int _finalMask,
+      Sink<int> _outputSink, int width)
       : super(_table, _value, _finalMask, _outputSink, width);
 
   void _crc8Loop(List<int> chunk, int start, int end) {
@@ -178,7 +179,8 @@ class _NormalSink extends _CrcSink {
 /// The specialized loop functions are meant to speed up calculations
 /// according to the width of the CRC value.
 class _ReflectedSink extends _CrcSink {
-  _ReflectedSink(_table, _value, _finalMask, _outputSink, int width)
+  _ReflectedSink(List<int> _table, int _value, int _finalMask,
+      Sink<int> _outputSink, int width)
       : super(_table, _value, _finalMask, _outputSink, width);
 
   void _crc8Loop(List<int> chunk, int start, int end) {
@@ -194,6 +196,7 @@ class _ReflectedSink extends _CrcSink {
     }
   }
 
+  @override
   CrcLoopFunction _selectLoopFunction(int width) {
     return width <= 8 ? _crc8Loop : _crcLoop;
   }
@@ -228,7 +231,7 @@ int reflect(int i, int width) {
 ///   * outputReflected: Whether the CRC value is reflected before being XOR'd
 ///       with finalMask.
 class ParametricCrc extends Converter<List<int>, int> {
-  static Map<Tuple2<int, bool>, List<int>> _generatedTables =
+  static final Map<Tuple2<int, bool>, List<int>> _generatedTables =
       new Map<Tuple2<int, bool>, List<int>>();
 
   List<int> _table;
@@ -241,13 +244,13 @@ class ParametricCrc extends Converter<List<int>, int> {
 
   ParametricCrc(
       this._width, this._polynomial, this._initialValue, this._finalMask,
-      {inputReflected = true, outputReflected = true})
+      {bool inputReflected = true, bool outputReflected = true})
       : _inputReflected = inputReflected,
         _outputReflected = outputReflected {
     // TODO
     assert(_inputReflected == _outputReflected,
-        "Different input and output reflection flag is not supported yet.");
-    assert((_width % 8) == 0, "Bit level checksums not supported yet.");
+        'Different input and output reflection flag is not supported yet.');
+    assert((_width % 8) == 0, 'Bit level checksums not supported yet.');
 
     final key = new Tuple2(_polynomial, _inputReflected);
     _table = _generatedTables[key];

@@ -39,6 +39,7 @@ class CrcBenchmark extends BenchmarkBase {
   CrcBenchmark(this._constructor, this._size)
       : super('${_constructor().runtimeType}_${_size}');
 
+  @override
   void run() {
     int sent = 0;
     final outputSink = new CrcSink();
@@ -51,7 +52,7 @@ class CrcBenchmark extends BenchmarkBase {
   }
 }
 
-main() {
+void main() {
   final constructors = [
     () => new Crc32Bzip2(),
     () => new Crc32Zlib(),

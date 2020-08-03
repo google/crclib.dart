@@ -21,7 +21,7 @@ import 'package:crclib/crclib.dart';
 
 typedef ParametricCrc _ConsFunc();
 
-main() {
+void main() {
   test('reflect', () {
     const inputs = const [0x80, 0xF0, 0xA5];
     const expected = const [0x01, 0x0F, 0xA5];
@@ -52,7 +52,7 @@ main() {
     expect(actual, expected);
   }
 
-  void testManyAlgos(Map<Function, List<int>> testCases) {
+  void testManyAlgos(Map<_ConsFunc, List<int>> testCases) {
     testCases.forEach((constructor, expected) {
       dynamic obj = constructor();
       test(obj.runtimeType, () async {

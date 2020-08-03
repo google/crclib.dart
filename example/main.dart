@@ -18,7 +18,7 @@ import 'dart:convert';
 
 import 'package:crclib/crclib.dart';
 
-main() {
+void main() {
   assert(new Crc32Zlib().convert(utf8.encode('123456789')) == 0xCBF43926,
-      "Failed");
+      'Failed');
 }
