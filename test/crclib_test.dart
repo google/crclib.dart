@@ -99,4 +99,14 @@ void main() {
       ],
     });
   });
+
+  test('reflected crc with initial value different from its own reflection',
+      () {
+    // TMS37157.
+    final init = 0x89ec;
+    assert(reflect(init, 16) != init);
+    final crc = ParametricCrc(16, 0x1021, init, 0x00,
+        inputReflected: true, outputReflected: true);
+    expect(crc.convert(utf8.encode('123456789')), 0x26b1);
+  });
 }

@@ -181,7 +181,7 @@ class _NormalSink extends _CrcSink {
 class _ReflectedSink extends _CrcSink {
   _ReflectedSink(List<int> _table, int _value, int _finalMask,
       Sink<int> _outputSink, int width)
-      : super(_table, _value, _finalMask, _outputSink, width);
+      : super(_table, reflect(_value, width), _finalMask, _outputSink, width);
 
   void _crc8Loop(List<int> chunk, int start, int end) {
     for (int b in chunk.getRange(start, end)) {
