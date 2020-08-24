@@ -20,7 +20,7 @@ Another supported use case is as stream transformers.
 
 Instead of using predefined classes, it is also possible to construct a
 customized CRC function with `ParametricCrc` class. For a list of known
-CRC routines, check out http://reveng.sourceforge.net/crc-catalogue/all.htm.
+CRC routines, check out https://reveng.sourceforge.io/crc-catalogue/all.htm.
 
 TODO:
 
