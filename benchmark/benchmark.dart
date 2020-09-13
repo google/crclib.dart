@@ -28,9 +28,9 @@ class CrcSink extends Sink<int> {
   void close() {}
 }
 
-final dataBlock = new List<int>.filled(1024, 0xFF);
+final dataBlock = List<int>.filled(1024, 0xFF);
 
-typedef ParametricCrc CrcConstructor();
+typedef CrcConstructor = ParametricCrc Function();
 
 class CrcBenchmark extends BenchmarkBase {
   final CrcConstructor _constructor;
@@ -41,8 +41,8 @@ class CrcBenchmark extends BenchmarkBase {
 
   @override
   void run() {
-    int sent = 0;
-    final outputSink = new CrcSink();
+    var sent = 0;
+    final outputSink = CrcSink();
     final inputSink = _constructor().startChunkedConversion(outputSink);
     while (sent < _size) {
       inputSink.add(dataBlock);
@@ -54,14 +54,14 @@ class CrcBenchmark extends BenchmarkBase {
 
 void main() {
   final constructors = [
-    () => new Crc32Bzip2(),
-    () => new Crc32Zlib(),
+    () => Crc32Bzip2(),
+    () => Crc32Zlib(),
   ];
   final sizes = [1 << 10, 1 << 11, 1 << 12, 1 << 23, 1 << 24, 1 << 25];
 
   for (final constructor in constructors) {
     for (final size in sizes) {
-      new CrcBenchmark(constructor, size).report();
+      CrcBenchmark(constructor, size).report();
     }
   }
 }

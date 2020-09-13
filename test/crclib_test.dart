@@ -13,18 +13,18 @@
 // limitations under the License.
 
 import 'dart:async';
-import 'package:dart2_constant/convert.dart';
+import 'dart:convert';
 
 import 'package:test/test.dart';
 
 import 'package:crclib/crclib.dart';
 
-typedef ParametricCrc _ConsFunc();
+typedef _ConsFunc = ParametricCrc Function();
 
 void main() {
   test('reflect', () {
-    const inputs = const [0x80, 0xF0, 0xA5];
-    const expected = const [0x01, 0x0F, 0xA5];
+    const inputs = [0x80, 0xF0, 0xA5];
+    const expected = [0x01, 0x0F, 0xA5];
     final actual = inputs.map((i) => reflect(i, 8));
     expect(actual, expected);
     expect(reflect(0x3e23, 3), 6);
@@ -32,19 +32,18 @@ void main() {
     expect(reflect(0x000000000000000F, 3), 0x7);
   });
 
-  const inputs = const [
+  const inputs = [
     '123456789',
     '1234567890',
     'The quick brown fox jumps over the lazy dog',
   ];
 
   Future testOneAlgo(_ConsFunc constructor, final List<int> expected) async {
-    Iterable<int> actual =
-        inputs.map((s) => constructor().convert(utf8.encode(s)));
+    var actual = inputs.map((s) => constructor().convert(utf8.encode(s)));
     expect(actual, expected);
 
     var futures = inputs.map((s) =>
-        new Stream.fromIterable([s.substring(0, 5), s.substring(5)])
+        Stream.fromIterable([s.substring(0, 5), s.substring(5)])
             .transform(utf8.encoder)
             .transform(constructor())
             .single);
@@ -63,36 +62,36 @@ void main() {
 
   group('crc8', () {
     testManyAlgos({
-      () => new Crc8Wcdma(): const [0x25, 0x6E, 0x7F],
-      () => new Crc8Atm(): const [0xA1, 0x07, 0x94],
-      () => new Crc8Rohc(): const [0xD0, 0xA8, 0xBF],
+      () => Crc8Wcdma(): [0x25, 0x6E, 0x7F],
+      () => Crc8Atm(): [0xA1, 0x07, 0x94],
+      () => Crc8Rohc(): [0xD0, 0xA8, 0xBF],
     });
   });
 
   group('crc16', () {
     testManyAlgos({
-      () => new Crc16Usb(): const [0xB4C8, 0x3DF5, 0x5763],
-      () => new Crc16X25(): const [0x906E, 0x4B13, 0x9358],
+      () => Crc16Usb(): [0xB4C8, 0x3DF5, 0x5763],
+      () => Crc16X25(): [0x906E, 0x4B13, 0x9358],
     });
   });
 
   group('crc24', () {
     testManyAlgos({
-      () => new Crc24OpenPgp(): const [0x21CF02, 0x8c0072, 0xa2618c],
+      () => Crc24OpenPgp(): [0x21CF02, 0x8c0072, 0xa2618c],
     });
   });
 
   group('crc32', () {
     testManyAlgos({
-      () => new Crc32Zlib(): const [0xCBF43926, 0x261DAEE5, 0x414FA339],
-      () => new Crc32Bzip2(): const [0xFC891918, 0x506853B6, 0x459DEE61],
-      () => new Crc32Iscsi(): const [0xE3069283, 0xF3DBD4FE, 0x22620404],
+      () => Crc32Zlib(): [0xCBF43926, 0x261DAEE5, 0x414FA339],
+      () => Crc32Bzip2(): [0xFC891918, 0x506853B6, 0x459DEE61],
+      () => Crc32Iscsi(): [0xE3069283, 0xF3DBD4FE, 0x22620404],
     });
   });
 
   group('crc64', () {
     testManyAlgos({
-      () => new Crc64Xz(): const [
+      () => Crc64Xz(): [
         0x995DC9BBDF1939FA,
         0xB1CB31BBB4A2B2BE,
         0x5B5EB8C2E54AA1C4,

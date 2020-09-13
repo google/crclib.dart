@@ -17,11 +17,11 @@
 /// The easiest way to use this library is to call `convert` on the instance of
 /// the desired CRC routine.
 ///
-///   new Crc32Zlib().convert(UTF8.encode('123456789')) == 0xCBF43926
+///   Crc32Zlib().convert(utf8.encode('123456789')) == 0xCBF43926
 ///
 /// Another supported use case is as stream transformers.
 ///
-///   new File(...).openRead().transform(new Crc32Zlib())
+///   File(...).openRead().transform(Crc32Zlib())
 ///
 /// Instead of using predefined classes, it is also possible to construct a
 /// customized CRC function with [ParametricCrc] class. For a list of known
@@ -33,6 +33,7 @@
 
 import 'dart:convert'
     show ByteConversionSink, ByteConversionSinkBase, Converter;
+import 'dart:typed_data';
 
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:tuple/tuple.dart' show Tuple2;
@@ -100,7 +101,7 @@ abstract class _CrcSink extends ByteConversionSinkBase {
   CrcLoopFunction _selectLoopFunction(int width);
 }
 
-typedef void CrcLoopFunction(List<int> chunk, int start, int end);
+typedef CrcLoopFunction = void Function(List<int> chunk, int start, int end);
 
 /// "Normal" CRC routines where the high bits are shifted out to the left.
 ///
@@ -116,31 +117,31 @@ class _NormalSink extends _CrcSink {
       : super(_table, _value, _finalMask, _outputSink, width);
 
   void _crc8Loop(List<int> chunk, int start, int end) {
-    for (int b in chunk.getRange(start, end)) {
+    for (final b in chunk.getRange(start, end)) {
       _value = _table[_value ^ b];
     }
   }
 
   void _crc16Loop(List<int> chunk, int start, int end) {
-    for (int b in chunk.getRange(start, end)) {
+    for (final b in chunk.getRange(start, end)) {
       _value = _table[(_value >> 8) ^ b] ^ ((_value << 8) & 0xFFFF);
     }
   }
 
   void _crc24Loop(List<int> chunk, int start, int end) {
-    for (int b in chunk.getRange(start, end)) {
+    for (final b in chunk.getRange(start, end)) {
       _value = _table[(_value >> 16) ^ b] ^ ((_value << 8) & 0xFFFFFF);
     }
   }
 
   void _crc32Loop(List<int> chunk, int start, int end) {
-    for (int b in chunk.getRange(start, end)) {
+    for (final b in chunk.getRange(start, end)) {
       _value = _table[(_value >> 24) ^ b] ^ ((_value << 8) & 0xFFFFFFFF);
     }
   }
 
   void _crc64Loop(List<int> chunk, int start, int end) {
-    for (int b in chunk.getRange(start, end)) {
+    for (final b in chunk.getRange(start, end)) {
       _value = _table[((_value >> 56) & 0xFF) ^ b] ^
           ((_value << 8) & 0xFFFFFFFFFFFFFFFF);
     }
@@ -149,9 +150,9 @@ class _NormalSink extends _CrcSink {
   @override
   CrcLoopFunction _selectLoopFunction(int width) {
     void _crcLoop(List<int> chunk, int start, int end) {
-      int shiftWidth = width - 8;
-      int mask = (1 << width) - 1;
-      for (int b in chunk.getRange(start, end)) {
+      final shiftWidth = width - 8;
+      final mask = (1 << width) - 1;
+      for (final b in chunk.getRange(start, end)) {
         _value = _table[((_value >> shiftWidth) ^ b) & 0xFF] ^
             ((_value << 8) & mask);
       }
@@ -184,13 +185,13 @@ class _ReflectedSink extends _CrcSink {
       : super(_table, reflect(_value, width), _finalMask, _outputSink, width);
 
   void _crc8Loop(List<int> chunk, int start, int end) {
-    for (int b in chunk.getRange(start, end)) {
+    for (final b in chunk.getRange(start, end)) {
       _value = (_table[_value ^ b]);
     }
   }
 
   void _crcLoop(List<int> chunk, int start, int end) {
-    for (int b in chunk.getRange(start, end)) {
+    for (final b in chunk.getRange(start, end)) {
       _value =
           (_table[(_value ^ b) & 0xFF] ^ ((_value >> 8) & 0xFFFFFFFFFFFFFF));
     }
@@ -210,7 +211,7 @@ class _ReflectedSink extends _CrcSink {
 /// bits are 011, when reflected is 110, which is 6 in decimal.
 @visibleForTesting
 int reflect(int i, int width) {
-  int ret = 0;
+  var ret = 0;
   while (width-- > 0) {
     ret = (ret << 1) | (i & 1);
     i >>= 1;
@@ -232,7 +233,7 @@ int reflect(int i, int width) {
 ///       with finalMask.
 class ParametricCrc extends Converter<List<int>, int> {
   static final Map<Tuple2<int, bool>, List<int>> _generatedTables =
-      new Map<Tuple2<int, bool>, List<int>>();
+      <Tuple2<int, bool>, List<int>>{};
 
   List<int> _table;
   final int _width;
@@ -252,7 +253,7 @@ class ParametricCrc extends Converter<List<int>, int> {
         'Different input and output reflection flag is not supported yet.');
     assert((_width % 8) == 0, 'Bit level checksums not supported yet.');
 
-    final key = new Tuple2(_polynomial, _inputReflected);
+    final key = Tuple2(_polynomial, _inputReflected);
     _table = _generatedTables[key];
     if (_table == null) {
       _table = _createByteLookupTable(_width, _polynomial, _inputReflected);
@@ -262,7 +263,7 @@ class ParametricCrc extends Converter<List<int>, int> {
 
   @override
   int convert(List<int> input) {
-    final outputSink = new _FinalSink();
+    final outputSink = _FinalSink();
     final inputSink = startChunkedConversion(outputSink);
     inputSink.add(input);
     inputSink.close();
@@ -273,11 +274,10 @@ class ParametricCrc extends Converter<List<int>, int> {
   ByteConversionSink startChunkedConversion(Sink<int> outputSink) {
     ByteConversionSink ret;
     if (_inputReflected) {
-      ret = new _ReflectedSink(
-          _table, _initialValue, _finalMask, outputSink, _width);
+      ret =
+          _ReflectedSink(_table, _initialValue, _finalMask, outputSink, _width);
     } else {
-      ret = new _NormalSink(
-          _table, _initialValue, _finalMask, outputSink, _width);
+      ret = _NormalSink(_table, _initialValue, _finalMask, outputSink, _width);
     }
     return ret;
   }
@@ -288,18 +288,27 @@ class ParametricCrc extends Converter<List<int>, int> {
 /// The [poly] value will be truncated to [width] bits. If [reflected] is
 /// `true`, the entries in the table will be reflected.
 List<int> _createByteLookupTable(int width, int poly, bool reflected) {
-  List<int> ret = new List.filled(256, 0);
-  int widthMask = (1 << width) - 1;
-  int truncatedPoly = poly & widthMask;
-  int topMask = 1 << (width - 1);
-  for (int i = 0; i < 256; ++i) {
+  List<int> ret;
+  if (width <= 8) {
+    ret = Uint8List(256);
+  } else if (width <= 16) {
+    ret = Uint16List(256);
+  } else if (width <= 32) {
+    ret = Uint32List(256);
+  } else if (width <= 64) {
+    ret = Uint64List(256);
+  }
+  final widthMask = (1 << width) - 1;
+  final truncatedPoly = poly & widthMask;
+  final topMask = 1 << (width - 1);
+  for (var i = 0; i < 256; ++i) {
     int crc;
     if (reflected) {
       crc = reflect(i, 8) << (width - 8);
     } else {
       crc = i << (width - 8);
     }
-    for (int j = 0; j < 8; ++j) {
+    for (var j = 0; j < 8; ++j) {
       if ((crc & topMask) != 0) {
         crc = ((crc << 1) ^ truncatedPoly);
       } else {
