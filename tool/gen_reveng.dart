@@ -109,7 +109,8 @@ Future<bool> createTest(List<Record> records) async {
   final sink = file.openWrite();
   sink.write(license);
   sink.write('''
-import 'package:dart2_constant/convert.dart';
+import 'dart:convert';
+
 import 'package:test/test.dart';
 
 import 'package:crclib/reveng.dart';

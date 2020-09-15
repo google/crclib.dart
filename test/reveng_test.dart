@@ -14,7 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:dart2_constant/convert.dart';
+import 'dart:convert';
+
 import 'package:test/test.dart';
 
 import 'package:crclib/reveng.dart';
