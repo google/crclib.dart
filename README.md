@@ -9,13 +9,13 @@ The easiest way to use this library is to call `convert` on the instance of
 the desired CRC routine.
 
 ```
-  Crc32Zlib().convert(utf8.encode('123456789')) == 0xCBF43926
+  Crc32Xz().convert(utf8.encode('123456789')) == 0xCBF43926
 ```
 
 Another supported use case is as stream transformers.
 
 ```
-  File(...).openRead().transform(Crc32Zlib()).single.then(...)
+  File(...).openRead().transform(Crc32Xz()).single.then(...)
 ```
 
 Instead of using predefined classes, it is also possible to construct a

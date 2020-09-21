@@ -17,7 +17,14 @@
 import 'dart:convert';
 
 import 'package:crclib/crclib.dart';
+import 'package:crclib/catalog.dart';
 
 void main() {
-  assert(Crc32Zlib().convert(utf8.encode('123456789')) == 0xCBF43926, 'Failed');
+  assert(
+      // ignore: unrelated_type_equality_checks
+      Crc32Xz().convert(utf8.encode('123456789')) == 0xCBF43926,
+      'Failed');
+  assert(
+      Crc32Xz().convert(utf8.encode('123456789')) == CrcValue(32, 0xCBF43926),
+      'Failed');
 }

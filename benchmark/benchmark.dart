@@ -15,12 +15,13 @@
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 import 'package:crclib/crclib.dart';
+import 'package:crclib/catalog.dart';
 
-class CrcSink extends Sink<int> {
-  int value;
+class CrcSink extends Sink<CrcValue> {
+  CrcValue value;
 
   @override
-  void add(int i) {
+  void add(CrcValue i) {
     value = i;
   }
 
@@ -55,7 +56,7 @@ class CrcBenchmark extends BenchmarkBase {
 void main() {
   final constructors = [
     () => Crc32Bzip2(),
-    () => Crc32Zlib(),
+    () => Crc32Xz(),
   ];
   final sizes = [1 << 10, 1 << 11, 1 << 12, 1 << 23, 1 << 24, 1 << 25];
 
