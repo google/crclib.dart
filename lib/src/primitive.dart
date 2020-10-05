@@ -18,46 +18,46 @@ import 'dart:convert' show ByteConversionSinkBase;
 /// equality against [int] or [BigInt], and printed with [toString] or
 /// [toRadixString].
 class CrcValue {
-  final dynamic _value;
+  final int _intValue;
+  final BigInt _bigIntValue;
   final int _width;
 
   // BigInt values are ensured to be non-negative. But int values can go
   // negative due to the shifts and xors affecting the most-significant bit.
-  CrcValue(this._width, this._value)
-      : assert(_value is int || (_value is BigInt && !_value.isNegative));
+  CrcValue(this._width, dynamic value)
+      : _intValue = (value is int) ? value : null,
+        _bigIntValue = (value is BigInt) ? value : null {
+    assert(_intValue != null ||
+        (_bigIntValue != null && !_bigIntValue.isNegative));
+  }
 
   @override
-  int get hashCode => _value.hashCode;
+  int get hashCode => (_intValue ?? _bigIntValue).hashCode;
 
   @override
   bool operator ==(Object other) {
     if (other is CrcValue && _width == other._width) {
-      return this == other._value;
+      return other == (_intValue ?? _bigIntValue);
     } else if (other is int) {
-      if (_value is int) {
-        return _value == other;
+      if (_intValue != null) {
+        return _intValue == other;
       }
-      return BigInt.from(other).toUnsigned(_width) == _value;
+      return BigInt.from(other).toUnsigned(_width) == _bigIntValue;
     } else if (other is BigInt && !other.isNegative) {
-      if (_value is BigInt) {
-        return _value == other;
+      if (_bigIntValue != null) {
+        return _bigIntValue == other;
       }
-      return BigInt.from(_value as int).toUnsigned(_width) == other;
+      return BigInt.from(_intValue).toUnsigned(_width) == other;
     }
     return false;
   }
 
   @override
-  String toString() {
-    return toRadixString(10);
-  }
+  String toString() => toRadixString(10);
 
-  String toRadixString(int radix) {
-    if (_value is int) {
-      return (_value as int).toRadixString(radix);
-    }
-    return (_value as BigInt).toRadixString(radix);
-  }
+  String toRadixString(int radix) => _intValue != null
+      ? _intValue.toRadixString(radix)
+      : _bigIntValue.toRadixString(radix);
 }
 
 /// Ultimate sink that stores the final CRC value.
