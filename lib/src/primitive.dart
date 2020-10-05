@@ -15,8 +15,8 @@
 import 'dart:convert' show ByteConversionSinkBase;
 
 /// Represents a CRC value. Objects of this class should only be tested for
-/// equality against [int] or [BigInt], and printed with [toString] or
-/// [toRadixString].
+/// equality against [int] or [BigInt], printed with [toString] or
+/// [toRadixString], or up-valued [toBigInt].
 class CrcValue {
   final int _intValue;
   final BigInt _bigIntValue;
@@ -44,10 +44,7 @@ class CrcValue {
       }
       return BigInt.from(other).toUnsigned(_width) == _bigIntValue;
     } else if (other is BigInt && !other.isNegative) {
-      if (_bigIntValue != null) {
-        return _bigIntValue == other;
-      }
-      return BigInt.from(_intValue).toUnsigned(_width) == other;
+      return toBigInt() == other;
     }
     return false;
   }
@@ -58,6 +55,9 @@ class CrcValue {
   String toRadixString(int radix) => _intValue != null
       ? _intValue.toRadixString(radix)
       : _bigIntValue.toRadixString(radix);
+
+  BigInt toBigInt() =>
+      _bigIntValue ?? BigInt.from(_intValue).toUnsigned(_width);
 }
 
 /// Ultimate sink that stores the final CRC value.
