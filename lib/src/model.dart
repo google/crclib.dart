@@ -71,6 +71,9 @@ class ParametricCrc extends Converter<List<int>, CrcValue> {
     }
   }
 
+  /// Returns the length in bits of returned CRC values.
+  int get lengthInBits => _width;
+
   @override
   CrcValue convert(List<int> input) {
     final outputSink = FinalSink();
