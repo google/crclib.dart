@@ -31,6 +31,7 @@
 ///   1. inputReflected and outputReflected can be different, see CRC-12/UMTS.
 ///   2. Bit-level checksums (including non-multiple-of-8 checksums).
 
+export 'package:crclib/src/flipper.dart' show CrcFlipper;
 export 'package:crclib/src/model.dart' show ParametricCrc;
 import 'package:crclib/src/model.dart' show ParametricCrc;
 export 'package:crclib/src/primitive.dart' show CrcValue;
