@@ -16,8 +16,8 @@ import 'dart:typed_data';
 import 'package:crclib/src/primitive.dart'
     show CrcLoopFunction, CrcValue, NormalSink, ReflectedSink, reflectInt;
 
-bool shouldUseBigInt(int width) {
-  return width > 64;
+int maxBitwiseOperationLengthInBits() {
+  return 64;
 }
 
 List<Comparable> createTable(int width) {

@@ -21,6 +21,9 @@ import 'package:crclib/crclib.dart';
 import 'package:crclib/src/model.dart' show createByteLookupTable;
 import 'package:crclib/src/primitive.dart'
     show CrcValue, reflectBigInt, reflectInt;
+import 'package:crclib/src/primitive_js.dart'
+if (dart.library.io) 'package:crclib/src/primitive_vm.dart'
+    show maxBitwiseOperationLengthInBits;
 import 'package:crclib/catalog.dart';
 
 typedef _ConsFunc = ParametricCrc Function();
@@ -44,9 +47,9 @@ void main() {
   ];
 
   Future testOneAlgo(
-      int width, _ConsFunc constructor, final List<Comparable> expected) async {
+      _ConsFunc constructor, final List<Comparable> expected) async {
     var expectedCrcValues =
-        expected.map((v) => CrcValue(width, v)).toList(growable: false);
+        expected.map((v) => CrcValue(v)).toList(growable: false);
     var actual = inputs.map((s) => constructor().convert(utf8.encode(s)));
     expect(actual, expectedCrcValues);
 
@@ -59,17 +62,17 @@ void main() {
     expect(actual, expectedCrcValues);
   }
 
-  void testManyAlgos(int width, Map<_ConsFunc, List<Comparable>> testCases) {
+  void testManyAlgos(Map<_ConsFunc, List<Comparable>> testCases) {
     testCases.forEach((constructor, expected) {
       dynamic obj = constructor();
       test(obj.runtimeType, () async {
-        await testOneAlgo(width, constructor, expected);
+        await testOneAlgo(constructor, expected);
       });
     });
   }
 
   group('crc8', () {
-    testManyAlgos(8, {
+    testManyAlgos({
       () => Crc8Wcdma(): [0x25, 0x6E, 0x7F],
       () => Crc8I4321(): [0xA1, 0x07, 0x94],
       () => Crc8Rohc(): [0xD0, 0xA8, 0xBF],
@@ -77,20 +80,20 @@ void main() {
   });
 
   group('crc16', () {
-    testManyAlgos(16, {
+    testManyAlgos({
       () => Crc16Usb(): [0xB4C8, 0x3DF5, 0x5763],
       () => Crc16X25(): [0x906E, 0x4B13, 0x9358],
     });
   });
 
   group('crc24', () {
-    testManyAlgos(24, {
+    testManyAlgos({
       () => Crc24OpenPgp(): [0x21CF02, 0x8c0072, 0xa2618c],
     });
   });
 
   group('crc32', () {
-    testManyAlgos(32, {
+    testManyAlgos({
       () => Crc32Xz(): [0xCBF43926, 0x261DAEE5, 0x414FA339],
       () => Crc32Bzip2(): [0xFC891918, 0x506853B6, 0x459DEE61],
       () => Crc32Iscsi(): [0xE3069283, 0xF3DBD4FE, 0x22620404],
@@ -98,7 +101,7 @@ void main() {
   });
 
   group('crc64', () {
-    testManyAlgos(64, {
+    testManyAlgos({
       () => Crc64Xz(): [
         BigInt.parse('995DC9BBDF1939FA', radix: 16),
         BigInt.parse('B1CB31BBB4A2B2BE', radix: 16),
@@ -124,7 +127,7 @@ void main() {
     assert(reflectInt(init, 16) != init);
     final crc = ParametricCrc(16, 0x1021, init, 0x00,
         inputReflected: true, outputReflected: true);
-    expect(crc.convert(utf8.encode('123456789')), CrcValue(16, 0x26b1));
+    expect(crc.convert(utf8.encode('123456789')), CrcValue(0x26b1));
   });
 
   test('createByteLookupTable', () {
@@ -138,22 +141,29 @@ void main() {
 
   group('CrcValue', () {
     var i = 42;
-    var iCv = CrcValue(32, i);
+    var iCv = CrcValue(i);
     var sbi = BigInt.from(42);
-    var sbiCv = CrcValue(32, sbi);
+    var sbiCv = CrcValue(sbi);
     var lbi = BigInt.one << 1024;
-    var lbiCv = CrcValue(1024, lbi);
+    var lbiCv = CrcValue(lbi);
+    var m1 = -1;
+    var m1Cv = CrcValue((1 << maxBitwiseOperationLengthInBits()) - 1);
+    var m1BiCv = CrcValue(
+        (BigInt.one << maxBitwiseOperationLengthInBits()) - BigInt.one);
+
     test('equal int', () {
       expect(i, iCv);
       expect(i, sbiCv);
       expect(i, isNot(lbiCv));
+      expect(m1, m1Cv);
+      expect(m1, m1BiCv);
     });
     test('equal small BigInt', () {
       expect(sbi, iCv);
       expect(sbi, sbiCv);
       expect(sbi, isNot(lbiCv));
     });
-    test('equal larse BigInt', () {
+    test('equal large BigInt', () {
       expect(lbi, isNot(iCv));
       expect(lbi, isNot(sbiCv));
       expect(lbi, lbiCv);
@@ -165,6 +175,7 @@ void main() {
       expect(iCv, iCv);
       expect(iCv, sbiCv);
       expect(sbiCv, sbiCv);
+      expect(m1Cv, m1BiCv);
     });
     test('equal dynamic', () {
       expect('abc', isNot(iCv));

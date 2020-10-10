@@ -14,17 +14,20 @@
 
 import 'dart:convert' show ByteConversionSinkBase;
 
+import 'package:crclib/src/primitive_js.dart'
+    if (dart.library.io) 'package:crclib/src/primitive_vm.dart'
+    show maxBitwiseOperationLengthInBits;
+
 /// Represents a CRC value. Objects of this class should only be tested for
 /// equality against [int] or [BigInt], printed with [toString] or
 /// [toRadixString], or up-valued [toBigInt].
 class CrcValue {
   final int _intValue;
   final BigInt _bigIntValue;
-  final int _width;
 
   // BigInt values are ensured to be non-negative. But int values can go
   // negative due to the shifts and xors affecting the most-significant bit.
-  CrcValue(this._width, dynamic value)
+  CrcValue(dynamic value)
       : _intValue = (value is int) ? value : null,
         _bigIntValue = (value is BigInt) ? value : null {
     assert(_intValue != null ||
@@ -36,13 +39,14 @@ class CrcValue {
 
   @override
   bool operator ==(Object other) {
-    if (other is CrcValue && _width == other._width) {
-      return other == (_intValue ?? _bigIntValue);
+    if (other is CrcValue) {
+      return toBigInt() == other.toBigInt();
     } else if (other is int) {
       if (_intValue != null) {
         return _intValue == other;
       }
-      return BigInt.from(other).toUnsigned(_width) == _bigIntValue;
+      return BigInt.from(other).toUnsigned(maxBitwiseOperationLengthInBits()) ==
+          _bigIntValue;
     } else if (other is BigInt && !other.isNegative) {
       return toBigInt() == other;
     }
@@ -57,7 +61,8 @@ class CrcValue {
       : _bigIntValue.toRadixString(radix);
 
   BigInt toBigInt() =>
-      _bigIntValue ?? BigInt.from(_intValue).toUnsigned(_width);
+      _bigIntValue ??
+      BigInt.from(_intValue).toUnsigned(maxBitwiseOperationLengthInBits());
 }
 
 /// Ultimate sink that stores the final CRC value.
@@ -118,10 +123,10 @@ abstract class _CrcSink<T> extends ByteConversionSinkBase {
       _closed = true;
       if (value is int) {
         var v = (value as int) ^ (finalMask as int);
-        _outputSink.add(CrcValue(width, v));
+        _outputSink.add(CrcValue(v));
       } else {
         var v = (value as BigInt) ^ (finalMask as BigInt);
-        _outputSink.add(CrcValue(width, v));
+        _outputSink.add(CrcValue(v));
       }
       _outputSink.close();
     }

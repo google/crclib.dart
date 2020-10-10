@@ -198,12 +198,12 @@ void main() {
     sink.write('''
   test('${record.name}', () {
     expect(${record.name}().convert(input),
-           CrcValue(${record.width}, BigInt.parse('$check', radix:16)));
+           CrcValue(BigInt.parse('$check', radix:16)));
 ''');
     record.aliases.forEach((alias) {
       sink.write('''
     expect(${alias}().convert(input),
-           CrcValue(${record.width}, BigInt.parse('$check', radix:16)));
+           CrcValue(BigInt.parse('$check', radix:16)));
 ''');
     });
     sink.write('  });\n');

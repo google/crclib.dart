@@ -16,9 +16,9 @@ import 'dart:typed_data';
 import 'package:crclib/src/primitive.dart'
     show CrcLoopFunction, CrcValue, NormalSink, ReflectedSink, reflectInt;
 
-bool shouldUseBigInt(int width) {
+int maxBitwiseOperationLengthInBits() {
   // JavaScript only performs shifts and bitwise operators on 32-bit ints.
-  return width > 32;
+  return 32;
 }
 
 List<Comparable> createTable(int width) {

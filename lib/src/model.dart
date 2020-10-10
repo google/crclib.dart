@@ -21,6 +21,10 @@ import 'package:crclib/src/primitive.dart';
 import 'package:crclib/src/primitive_js.dart'
     if (dart.library.io) 'package:crclib/src/primitive_vm.dart';
 
+bool shouldUseBigInt(int width) {
+  return width > maxBitwiseOperationLengthInBits();
+}
+
 /// The base class of all CRC routines. The parameters are:
 ///
 ///   * width: The bit count of the CRC value, eg 32, 16.
