@@ -11,11 +11,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    container:
-      image:  google/dart:latest
-
     steps:
     - uses: actions/checkout@v2
+    - name: Setup Dart Action
+      uses: cedx/setup-dart@v2.2.0
     - name: Install dependencies
       run: pub get
     - name: Run tests
