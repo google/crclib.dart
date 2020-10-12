@@ -15,8 +15,9 @@
 import 'dart:collection' show ListMixin;
 import 'dart:typed_data' show Uint8List, Uint32List;
 
-import 'package:crclib/crclib.dart';
 import 'package:meta/meta.dart';
+
+import 'package:crclib/crclib.dart';
 
 abstract class _FixedList<T> extends ListMixin<T> {
   @override

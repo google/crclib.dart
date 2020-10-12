@@ -198,6 +198,19 @@ Outputs:
 1. For each element `x_i` in vector `x`, if `x_i` is set, the bit at position
    `p_i` is picked to flip.
 
+### Matching multiple CRC functions simultaneously
+
+The same algorithm can be easily extended to match multiple CRC values from
+various CRC functions all at once. Two simple changes are noted here.
+
+1. A wrapping function that produces a longer checksum value by concatenating
+   all values from all CRC functions. This function is used in place of the
+   original CRC function in the algorithm above.
+1. The same bit concatenation is applied to multiple `t`s to produce `d`.
+
+It goes without saying that `w` is now extended to be the sum of all CRC width
+parameters.
+
 ## Conclusion
 
 Exploiting affinity of CRCs gives a simple method to select a set of bits to

@@ -32,6 +32,5 @@
 ///   2. Bit-level checksums (including non-multiple-of-8 checksums).
 
 export 'package:crclib/src/flipper.dart' show CrcFlipper;
-export 'package:crclib/src/model.dart' show ParametricCrc;
-import 'package:crclib/src/model.dart' show ParametricCrc;
+export 'package:crclib/src/model.dart' show MultiCrc, ParametricCrc;
 export 'package:crclib/src/primitive.dart' show CrcValue;

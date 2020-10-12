@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert' show ByteConversionSink, Converter;
+import 'dart:convert'
+    show ByteConversionSink, ByteConversionSinkBase, Converter;
 
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:tuple/tuple.dart' show Tuple2;
@@ -182,4 +183,54 @@ List<Comparable> _createByteLookupTableBigInt(
     }
   }
   return ret;
+}
+
+/// A dummy CRC function that concatenates a list of others. Other than
+/// [lengthInBits], other CRC parameters are not used and should not be trusted.
+class MultiCrc extends ParametricCrc {
+  final List<ParametricCrc> underlyingCrcs;
+
+  MultiCrc(this.underlyingCrcs)
+      : assert(underlyingCrcs.isNotEmpty),
+        super(underlyingCrcs.map((c) => c.lengthInBits).reduce((a, b) => a + b),
+            0, 0, 0);
+
+  @override
+  ByteConversionSink startChunkedConversion(Sink<CrcValue> outputSink) =>
+      _MultiCrcSink(underlyingCrcs, outputSink);
+}
+
+class _MultiCrcSink extends ByteConversionSinkBase {
+  final Sink<CrcValue> outputSink;
+  final List<ParametricCrc> underlyingCrcs;
+  final List<FinalSink> underlyingOutputs;
+  final List<ByteConversionSink> underlyingSinks;
+
+  _MultiCrcSink(this.underlyingCrcs, this.outputSink)
+      : underlyingOutputs = List.generate(
+            underlyingCrcs.length, (_) => FinalSink(),
+            growable: false),
+        underlyingSinks =
+            List.filled(underlyingCrcs.length, null, growable: false) {
+    for (var i = 0; i < underlyingCrcs.length; i++) {
+      underlyingSinks[i] =
+          underlyingCrcs[i].startChunkedConversion(underlyingOutputs[i]);
+    }
+  }
+
+  @override
+  void add(List<int> chunk) {
+    underlyingSinks.forEach((s) => s.add(chunk));
+  }
+
+  @override
+  void close() {
+    underlyingSinks.forEach((s) => s.close());
+    var ret = BigInt.zero;
+    for (var i = 0; i < underlyingCrcs.length; ++i) {
+      var crc = underlyingCrcs[i];
+      ret = (ret << crc.lengthInBits) | underlyingOutputs[i].value.toBigInt();
+    }
+    outputSink.add(CrcValue(ret));
+  }
 }
