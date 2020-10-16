@@ -198,34 +198,62 @@ void main() {
           'flIPpiNG LOWErcAsEs To uPpERcaseS LIkE mAmA Pig mAKInG hOT paNcAKEs '
           'For DAdDY pig in peppa pig cartoon');
     });
-    test('multi crc fun', () {
-      var inputMessage =
-          'flipping lowercases to uppercases like mama pig making hot pancakes '
-          'for daddy pig in peppa pig cartoon';
-      var positions = inputMessage.codeUnits
-          .asMap()
-          .entries
-          .where((e) => e.value >= 0x61 && e.value < 0x61 + 26)
-          .map((e) => e.key * 8 + 5)
-          .toSet();
-      var crc = MultiCrc([Crc16(), Crc32()]);
-      var flipper = CrcFlipper(crc);
-      var target = BigInt.parse('DEADCAFEBEEF', radix: 16);
-      var solution = flipper.flipWithData(
-          inputMessage.codeUnits, positions, CrcValue(target));
-      var tmp = List.of(inputMessage.codeUnits, growable: false);
-      solution.forEach((bitPosition) {
-        var mask = 1 << (bitPosition % 8);
-        tmp[bitPosition ~/ 8] ^= mask;
+    group('multi crc fun', () {
+      test('< 64 bits', () {
+        var inputMessage =
+            'flipping lowercases to uppercases like mama pig making hot pancakes '
+            'for daddy pig in peppa pig cartoon';
+        var positions = inputMessage.codeUnits
+            .asMap()
+            .entries
+            .where((e) => e.value >= 0x61 && e.value < 0x61 + 26)
+            .map((e) => e.key * 8 + 5)
+            .toSet();
+        var crc = MultiCrc([Crc16(), Crc32()]);
+        var flipper = CrcFlipper(crc);
+        var target = BigInt.parse('DEADCAFEBEEF', radix: 16);
+        var solution = flipper.flipWithData(
+            inputMessage.codeUnits, positions, CrcValue(target));
+        var tmp = List.of(inputMessage.codeUnits, growable: false);
+        solution.forEach((bitPosition) {
+          var mask = 1 << (bitPosition % 8);
+          tmp[bitPosition ~/ 8] ^= mask;
+        });
+        expect(target, crc.convert(tmp));
+        var outputMessage = String.fromCharCodes(tmp);
+        expect(
+            outputMessage,
+            'flIpPIng lowErCaSES TO uPPERCASes LIKE maMa piG MAKINg hot paNcakes '
+            'for daddy pig in peppa pig cartoon');
+        expect(0xDEAD, Crc16().convert(tmp));
+        expect(0xCAFEBEEF, Crc32().convert(tmp));
       });
-      expect(target, crc.convert(tmp));
-      var outputMessage = String.fromCharCodes(tmp);
-      expect(
-          outputMessage,
-          'flIpPIng lowErCaSES TO uPPERCASes LIKE maMa piG MAKINg hot paNcakes '
-          'for daddy pig in peppa pig cartoon');
-      expect(0xDEAD, Crc16().convert(tmp));
-      expect(0xCAFEBEEF, Crc32().convert(tmp));
+      test('> 64 bits', () {
+        var inputMessage = 'flipping lowercases to UPPERCASES';
+        var positions = inputMessage.codeUnits
+            .asMap()
+            .entries
+            .where((e) =>
+                (e.value >= 0x61 && e.value < 0x61 + 26) ||
+                (e.value >= 0x41 && e.value < 0x41 + 26))
+            .map((e) => e.key * 8 + 5)
+            .toSet();
+        var crc = MultiCrc([Crc16(), Crc32C(), Crc64Xz()]);
+        var target = crc
+            .convert('flipping LOWERCASES to uppercases'.codeUnits)
+            .toBigInt();
+        var flipper = CrcFlipper(crc);
+        var solution = flipper.flipWithData(
+            inputMessage.codeUnits, positions, CrcValue(target));
+        var tmp = List.of(inputMessage.codeUnits, growable: false);
+        solution.forEach((bitPosition) {
+          var mask = 1 << (bitPosition % 8);
+          tmp[bitPosition ~/ 8] ^= mask;
+        });
+        expect(target, crc.convert(tmp));
+        var outputMessage = String.fromCharCodes(tmp);
+        expect(outputMessage, 'flipping LOWERCASES to uppercases');
+      });
     });
   });
 }

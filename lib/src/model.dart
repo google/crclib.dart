@@ -26,7 +26,26 @@ bool shouldUseBigInt(int width) {
   return width > maxBitwiseOperationLengthInBits();
 }
 
-/// The base class of all CRC routines. The parameters are:
+/// The base class of all CRC routines.
+abstract class BaseCrc extends Converter<List<int>, CrcValue> {
+  final int _width;
+
+  const BaseCrc(this._width);
+
+  /// Returns the length in bits of returned CRC values.
+  int get lengthInBits => _width;
+
+  @override
+  CrcValue convert(List<int> input) {
+    final outputSink = FinalSink();
+    final inputSink = startChunkedConversion(outputSink);
+    inputSink.add(input);
+    inputSink.close();
+    return outputSink.value;
+  }
+}
+
+/// The table lookup implementation of all CRC routines. The parameters are:
 ///
 ///   * width: The bit count of the CRC value, eg 32, 16.
 ///   * polynomial: The generator polynomial in integer form, eg if the
@@ -38,12 +57,11 @@ bool shouldUseBigInt(int width) {
 ///       reflected.
 ///   * outputReflected: Whether the CRC value is reflected before being XOR'd
 ///       with finalMask.
-class ParametricCrc extends Converter<List<int>, CrcValue> {
+class ParametricCrc extends BaseCrc {
   static final Map<Tuple2<Comparable, bool>, List<Comparable>>
       _generatedTables = <Tuple2<Comparable, bool>, List<Comparable>>{};
 
   List<Comparable> _table;
-  final int _width;
   final Comparable _polynomial;
   final dynamic _initialValue;
   final dynamic _finalMask;
@@ -51,33 +69,31 @@ class ParametricCrc extends Converter<List<int>, CrcValue> {
   final bool _outputReflected;
 
   ParametricCrc(
-      this._width, this._polynomial, this._initialValue, this._finalMask,
+      int width, this._polynomial, this._initialValue, this._finalMask,
       {bool inputReflected = true, bool outputReflected = true})
       : _inputReflected = inputReflected,
         _outputReflected = outputReflected,
-        assert((!shouldUseBigInt(_width) &&
+        assert((!shouldUseBigInt(width) &&
                 _polynomial is int &&
                 _initialValue is int &&
                 _finalMask is int) ||
-            (shouldUseBigInt(_width) &&
+            (shouldUseBigInt(width) &&
                 _polynomial is BigInt &&
                 _initialValue is BigInt &&
-                _finalMask is BigInt)) {
+                _finalMask is BigInt)),
+        super(width) {
     // TODO
     assert(_inputReflected == _outputReflected,
         'Different input and output reflection flag is not supported yet.');
-    assert((_width % 8) == 0, 'Bit level checksums not supported yet.');
+    assert((width % 8) == 0, 'Bit level checksums not supported yet.');
 
     final key = Tuple2(_polynomial, _inputReflected);
     _table = _generatedTables[key];
     if (_table == null) {
-      _table = createByteLookupTable(_width, _polynomial, _inputReflected);
+      _table = createByteLookupTable(width, _polynomial, _inputReflected);
       _generatedTables[key] = _table;
     }
   }
-
-  /// Returns the length in bits of returned CRC values.
-  int get lengthInBits => _width;
 
   @override
   CrcValue convert(List<int> input) {
@@ -187,17 +203,17 @@ List<Comparable> _createByteLookupTableBigInt(
 
 /// A dummy CRC function that concatenates a list of others. Other than
 /// [lengthInBits], other CRC parameters are not used and should not be trusted.
-class MultiCrc extends ParametricCrc {
-  final List<ParametricCrc> underlyingCrcs;
+class MultiCrc extends BaseCrc {
+  final List<ParametricCrc> _underlyingCrcs;
 
-  MultiCrc(this.underlyingCrcs)
-      : assert(underlyingCrcs.isNotEmpty),
-        super(underlyingCrcs.map((c) => c.lengthInBits).reduce((a, b) => a + b),
-            0, 0, 0);
+  MultiCrc(this._underlyingCrcs)
+      : assert(_underlyingCrcs.isNotEmpty),
+        super(
+            _underlyingCrcs.map((c) => c.lengthInBits).reduce((a, b) => a + b));
 
   @override
   ByteConversionSink startChunkedConversion(Sink<CrcValue> outputSink) =>
-      _MultiCrcSink(underlyingCrcs, outputSink);
+      _MultiCrcSink(_underlyingCrcs, outputSink);
 }
 
 class _MultiCrcSink extends ByteConversionSinkBase {

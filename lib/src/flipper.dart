@@ -17,7 +17,8 @@ import 'dart:typed_data' show Uint8List, Uint32List;
 
 import 'package:meta/meta.dart';
 
-import 'package:crclib/crclib.dart';
+import 'package:crclib/crclib.dart' show CrcValue;
+import 'package:crclib/src/model.dart' show BaseCrc;
 
 abstract class _FixedList<T> extends ListMixin<T> {
   @override
@@ -247,7 +248,7 @@ BitArray solveAugmentedMatrix(BitMatrix matrix) {
 
 /// Utility class to find bit positions to flip to yield a desired CRC value.
 class CrcFlipper {
-  final ParametricCrc _crcFunction;
+  final BaseCrc _crcFunction;
 
   const CrcFlipper(this._crcFunction);
 
