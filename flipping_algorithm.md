@@ -36,22 +36,22 @@ register value to lookup the corresponding pre-calculated value from the table.
 This value is then used to update the register. The final register value might
 be reversed before being XOR'd with the xor-out value.
 
-Combining the xor-in value, the processing, and the xor-out value, the full CRC
-function can be modeled as:
+Combining the xor-in value, the processing, and the xor-out value, [the CRC of
+a message in terms of three components] [2] are shown below:
 
     CRC(m) = i ^ process(m) ^ o
 
-where `i` is the xor-in value, `o` the xor-out.
+where `i` is due to the xor-in value, `o` the xor-out.
 
 The interesting aspect of the processing part is its linearity. That is, given
 two messages `m_1` and `m_2` of the same length, `process(m_1 ^ m_2)` yields
 the same value as `process(m_1) ^ process(m_2)`. This property is seen under
-the [modulo arithmetic view of CRC functions] [2] (i.e.
+the [modulo arithmetic view of CRC functions] [3] (i.e.
 `(a + b) mod m = ((a mod m) + (b mod m)) mod m`).
 
 ### Affinity
 
-CRC is [affine with respect to the XOR operation] [3], i.e. given messages
+CRC is [affine with respect to the XOR operation] [4], i.e. given messages
 `m_1`, `m_2`, and `m_3` of the same length:
 
     CRC(m_1) ^ CRC(m_2) ^ CRC(m_3) = CRC(m_1 ^ m_2 ^ m_3)
@@ -219,9 +219,12 @@ flip so that the resulting message has the desired CRC value.
 [1]: <https://zlib.net/crc_v3.txt> "A PAINLESS GUIDE TO CRC ERROR DETECTION
 ALGORITHMS by Ross N. Williams"
 
-[2]: <https://en.wikipedia.org/wiki/Mathematics_of_cyclic_redundancy_checks>
+[2]: <https://www.cosc.canterbury.ac.nz/greg.ewing/essays/CRC-Reverse-Engineering.html>
+"Reverse-Engineering a CRC Algorithm by Gregory Ewing"
+
+[3]: <https://en.wikipedia.org/wiki/Mathematics_of_cyclic_redundancy_checks>
 "Mathematics of cyclic redundancy checks by Wikipedia"
 
-[3]: <https://www.ndss-symposium.org/wp-content/uploads/2020/04/bar2020-23011.pdf>
+[4]: <https://www.ndss-symposium.org/wp-content/uploads/2020/04/bar2020-23011.pdf>
 "It Doesn't Have to Be So Hard: Efficient Symbolic Reasoning for CRCs by
 Vaibhav Sharma & Navid Emamdoost & Seonmo Kim & Stephen McCamant"
