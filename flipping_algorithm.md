@@ -14,7 +14,7 @@ check (or CRC) value.
 ### CRC implementation
 
 CRC is often implemented in software with a lookup table. The usually model is
-given in [Rocksoft Model CRC Algorithm] [1]. There are several parameters to
+given in [Rocksoft Model CRC Algorithm][1]. There are several parameters to
 the model:
 
 1. The width of the polynomial.
@@ -37,7 +37,7 @@ This value is then used to update the register. The final register value might
 be reversed before being XOR'd with the xor-out value.
 
 Combining the xor-in value, the processing, and the xor-out value, [the CRC of
-a message in terms of three components] [2] are shown below:
+a message in terms of three components][2] are shown below:
 
     CRC(m) = i ^ process(m) ^ o
 
@@ -46,12 +46,12 @@ where `i` is due to the xor-in value, `o` the xor-out.
 The interesting aspect of the processing part is its linearity. That is, given
 two messages `m_1` and `m_2` of the same length, `process(m_1 ^ m_2)` yields
 the same value as `process(m_1) ^ process(m_2)`. This property is seen under
-the [modulo arithmetic view of CRC functions] [3] (i.e.
+the [modulo arithmetic view of CRC functions][3] (i.e.
 `(a + b) mod m = ((a mod m) + (b mod m)) mod m`).
 
 ### Affinity
 
-CRC is [affine with respect to the XOR operation] [4], i.e. given messages
+CRC is [affine with respect to the XOR operation][4], i.e. given messages
 `m_1`, `m_2`, and `m_3` of the same length:
 
     CRC(m_1) ^ CRC(m_2) ^ CRC(m_3) = CRC(m_1 ^ m_2 ^ m_3)
