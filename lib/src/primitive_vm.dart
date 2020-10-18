@@ -97,6 +97,11 @@ class NormalSinkInt extends NormalSink<int> {
         return _crcLoop;
     }
   }
+
+  @override
+  NormalSinkInt split(Sink<CrcValue> outputSink) {
+    return NormalSinkInt(table, value, finalMask, outputSink, width);
+  }
 }
 
 class ReflectedSinkInt extends ReflectedSink<int> {
@@ -119,5 +124,11 @@ class ReflectedSinkInt extends ReflectedSink<int> {
   @override
   CrcLoopFunction selectLoopFunction() {
     return (width <= 8) ? _crc8Loop : _crcLoop;
+  }
+
+  @override
+  ReflectedSinkInt split(Sink<CrcValue> outputSink) {
+    return ReflectedSinkInt(
+        table, reflectInt(value, width), finalMask, outputSink, width);
   }
 }

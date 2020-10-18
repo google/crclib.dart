@@ -105,8 +105,8 @@ class ParametricCrc extends BaseCrc {
   }
 
   @override
-  ByteConversionSink startChunkedConversion(Sink<CrcValue> outputSink) {
-    ByteConversionSink ret;
+  CrcSink startChunkedConversion(Sink<CrcValue> outputSink) {
+    CrcSink ret;
     if (_inputReflected) {
       if (shouldUseBigInt(_width)) {
         ret = ReflectedSinkBigInt(_table as List<BigInt>,

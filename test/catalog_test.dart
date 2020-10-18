@@ -19,7 +19,7 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 import 'package:crclib/catalog.dart';
-import 'package:crclib/src/primitive.dart' show CrcValue;
+import 'package:crclib/src/primitive.dart' show CrcValue, FinalSink;
 
 void main() {
   final input = utf8.encode('123456789');
@@ -27,29 +27,134 @@ void main() {
     expect(Crc8Autosar().convert(input),
            CrcValue(BigInt.parse('df', radix:16)));
   });
+  test('Crc8Autosar clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Autosar().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('df', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Autosar().convert('1234567890'.codeUnits));
+  });
   test('Crc8Bluetooth', () {
     expect(Crc8Bluetooth().convert(input),
            CrcValue(BigInt.parse('26', radix:16)));
+  });
+  test('Crc8Bluetooth clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Bluetooth().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('26', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Bluetooth().convert('1234567890'.codeUnits));
   });
   test('Crc8Cdma2000', () {
     expect(Crc8Cdma2000().convert(input),
            CrcValue(BigInt.parse('da', radix:16)));
   });
+  test('Crc8Cdma2000 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Cdma2000().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('da', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Cdma2000().convert('1234567890'.codeUnits));
+  });
   test('Crc8Darc', () {
     expect(Crc8Darc().convert(input),
            CrcValue(BigInt.parse('15', radix:16)));
+  });
+  test('Crc8Darc clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Darc().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('15', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Darc().convert('1234567890'.codeUnits));
   });
   test('Crc8DvbS2', () {
     expect(Crc8DvbS2().convert(input),
            CrcValue(BigInt.parse('bc', radix:16)));
   });
+  test('Crc8DvbS2 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8DvbS2().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('bc', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8DvbS2().convert('1234567890'.codeUnits));
+  });
   test('Crc8GsmA', () {
     expect(Crc8GsmA().convert(input),
            CrcValue(BigInt.parse('37', radix:16)));
   });
+  test('Crc8GsmA clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8GsmA().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('37', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8GsmA().convert('1234567890'.codeUnits));
+  });
   test('Crc8GsmB', () {
     expect(Crc8GsmB().convert(input),
            CrcValue(BigInt.parse('94', radix:16)));
+  });
+  test('Crc8GsmB clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8GsmB().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('94', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8GsmB().convert('1234567890'.codeUnits));
   });
   test('Crc8I4321', () {
     expect(Crc8I4321().convert(input),
@@ -57,13 +162,58 @@ void main() {
     expect(Crc8Itu().convert(input),
            CrcValue(BigInt.parse('a1', radix:16)));
   });
+  test('Crc8I4321 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8I4321().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('a1', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8I4321().convert('1234567890'.codeUnits));
+  });
   test('Crc8ICode', () {
     expect(Crc8ICode().convert(input),
            CrcValue(BigInt.parse('7e', radix:16)));
   });
+  test('Crc8ICode clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8ICode().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('7e', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8ICode().convert('1234567890'.codeUnits));
+  });
   test('Crc8Lte', () {
     expect(Crc8Lte().convert(input),
            CrcValue(BigInt.parse('ea', radix:16)));
+  });
+  test('Crc8Lte clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Lte().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('ea', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Lte().convert('1234567890'.codeUnits));
   });
   test('Crc8MaximDow', () {
     expect(Crc8MaximDow().convert(input),
@@ -73,31 +223,136 @@ void main() {
     expect(Crc8Dow().convert(input),
            CrcValue(BigInt.parse('a1', radix:16)));
   });
+  test('Crc8MaximDow clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8MaximDow().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('a1', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8MaximDow().convert('1234567890'.codeUnits));
+  });
   test('Crc8MifareMad', () {
     expect(Crc8MifareMad().convert(input),
            CrcValue(BigInt.parse('99', radix:16)));
+  });
+  test('Crc8MifareMad clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8MifareMad().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('99', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8MifareMad().convert('1234567890'.codeUnits));
   });
   test('Crc8Nrsc5', () {
     expect(Crc8Nrsc5().convert(input),
            CrcValue(BigInt.parse('f7', radix:16)));
   });
+  test('Crc8Nrsc5 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Nrsc5().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('f7', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Nrsc5().convert('1234567890'.codeUnits));
+  });
   test('Crc8OpenSafety', () {
     expect(Crc8OpenSafety().convert(input),
            CrcValue(BigInt.parse('3e', radix:16)));
+  });
+  test('Crc8OpenSafety clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8OpenSafety().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('3e', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8OpenSafety().convert('1234567890'.codeUnits));
   });
   test('Crc8Rohc', () {
     expect(Crc8Rohc().convert(input),
            CrcValue(BigInt.parse('d0', radix:16)));
   });
+  test('Crc8Rohc clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Rohc().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('d0', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Rohc().convert('1234567890'.codeUnits));
+  });
   test('Crc8SaeJ1850', () {
     expect(Crc8SaeJ1850().convert(input),
            CrcValue(BigInt.parse('4b', radix:16)));
+  });
+  test('Crc8SaeJ1850 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8SaeJ1850().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('4b', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8SaeJ1850().convert('1234567890'.codeUnits));
   });
   test('Crc8SMBus', () {
     expect(Crc8SMBus().convert(input),
            CrcValue(BigInt.parse('f4', radix:16)));
     expect(Crc8().convert(input),
            CrcValue(BigInt.parse('f4', radix:16)));
+  });
+  test('Crc8SMBus clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8SMBus().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('f4', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8SMBus().convert('1234567890'.codeUnits));
   });
   test('Crc8Tech3250', () {
     expect(Crc8Tech3250().convert(input),
@@ -107,9 +362,39 @@ void main() {
     expect(Crc8Ebu().convert(input),
            CrcValue(BigInt.parse('97', radix:16)));
   });
+  test('Crc8Tech3250 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Tech3250().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('97', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Tech3250().convert('1234567890'.codeUnits));
+  });
   test('Crc8Wcdma', () {
     expect(Crc8Wcdma().convert(input),
            CrcValue(BigInt.parse('25', radix:16)));
+  });
+  test('Crc8Wcdma clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc8Wcdma().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('25', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc8Wcdma().convert('1234567890'.codeUnits));
   });
   test('Crc16Arc', () {
     expect(Crc16Arc().convert(input),
@@ -121,17 +406,77 @@ void main() {
     expect(Crc16Ibm().convert(input),
            CrcValue(BigInt.parse('bb3d', radix:16)));
   });
+  test('Crc16Arc clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Arc().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('bb3d', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Arc().convert('1234567890'.codeUnits));
+  });
   test('Crc16Cdma2000', () {
     expect(Crc16Cdma2000().convert(input),
            CrcValue(BigInt.parse('4c06', radix:16)));
+  });
+  test('Crc16Cdma2000 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Cdma2000().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('4c06', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Cdma2000().convert('1234567890'.codeUnits));
   });
   test('Crc16Cms', () {
     expect(Crc16Cms().convert(input),
            CrcValue(BigInt.parse('aee7', radix:16)));
   });
+  test('Crc16Cms clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Cms().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('aee7', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Cms().convert('1234567890'.codeUnits));
+  });
   test('Crc16Dds110', () {
     expect(Crc16Dds110().convert(input),
            CrcValue(BigInt.parse('9ecf', radix:16)));
+  });
+  test('Crc16Dds110 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Dds110().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('9ecf', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Dds110().convert('1234567890'.codeUnits));
   });
   test('Crc16DectR', () {
     expect(Crc16DectR().convert(input),
@@ -139,19 +484,79 @@ void main() {
     expect(Crc16R().convert(input),
            CrcValue(BigInt.parse('7e', radix:16)));
   });
+  test('Crc16DectR clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16DectR().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('7e', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16DectR().convert('1234567890'.codeUnits));
+  });
   test('Crc16DectX', () {
     expect(Crc16DectX().convert(input),
            CrcValue(BigInt.parse('7f', radix:16)));
     expect(Crc16X().convert(input),
            CrcValue(BigInt.parse('7f', radix:16)));
   });
+  test('Crc16DectX clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16DectX().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('7f', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16DectX().convert('1234567890'.codeUnits));
+  });
   test('Crc16Dnp', () {
     expect(Crc16Dnp().convert(input),
            CrcValue(BigInt.parse('ea82', radix:16)));
   });
+  test('Crc16Dnp clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Dnp().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('ea82', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Dnp().convert('1234567890'.codeUnits));
+  });
   test('Crc16En13757', () {
     expect(Crc16En13757().convert(input),
            CrcValue(BigInt.parse('c2b7', radix:16)));
+  });
+  test('Crc16En13757 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16En13757().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('c2b7', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16En13757().convert('1234567890'.codeUnits));
   });
   test('Crc16GeniBus', () {
     expect(Crc16GeniBus().convert(input),
@@ -165,9 +570,39 @@ void main() {
     expect(Crc16ICode().convert(input),
            CrcValue(BigInt.parse('d64e', radix:16)));
   });
+  test('Crc16GeniBus clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16GeniBus().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('d64e', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16GeniBus().convert('1234567890'.codeUnits));
+  });
   test('Crc16Gsm', () {
     expect(Crc16Gsm().convert(input),
            CrcValue(BigInt.parse('ce3c', radix:16)));
+  });
+  test('Crc16Gsm clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Gsm().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('ce3c', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Gsm().convert('1234567890'.codeUnits));
   });
   test('Crc16Ibm3740', () {
     expect(Crc16Ibm3740().convert(input),
@@ -176,6 +611,21 @@ void main() {
            CrcValue(BigInt.parse('29b1', radix:16)));
     expect(Crc16CcittFalse().convert(input),
            CrcValue(BigInt.parse('29b1', radix:16)));
+  });
+  test('Crc16Ibm3740 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Ibm3740().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('29b1', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Ibm3740().convert('1234567890'.codeUnits));
   });
   test('Crc16IbmSdlc', () {
     expect(Crc16IbmSdlc().convert(input),
@@ -189,11 +639,41 @@ void main() {
     expect(Crc16B().convert(input),
            CrcValue(BigInt.parse('906e', radix:16)));
   });
+  test('Crc16IbmSdlc clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16IbmSdlc().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('906e', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16IbmSdlc().convert('1234567890'.codeUnits));
+  });
   test('Crc16IsoIec144433A', () {
     expect(Crc16IsoIec144433A().convert(input),
            CrcValue(BigInt.parse('bf05', radix:16)));
     expect(Crc16A().convert(input),
            CrcValue(BigInt.parse('bf05', radix:16)));
+  });
+  test('Crc16IsoIec144433A clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16IsoIec144433A().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('bf05', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16IsoIec144433A().convert('1234567890'.codeUnits));
   });
   test('Crc16Kermit', () {
     expect(Crc16Kermit().convert(input),
@@ -205,9 +685,39 @@ void main() {
     expect(Crc16V41Lsb().convert(input),
            CrcValue(BigInt.parse('2189', radix:16)));
   });
+  test('Crc16Kermit clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Kermit().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('2189', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Kermit().convert('1234567890'.codeUnits));
+  });
   test('Crc16LJ1200', () {
     expect(Crc16LJ1200().convert(input),
            CrcValue(BigInt.parse('bdf4', radix:16)));
+  });
+  test('Crc16LJ1200 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16LJ1200().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('bdf4', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16LJ1200().convert('1234567890'.codeUnits));
   });
   test('Crc16MaximDow', () {
     expect(Crc16MaximDow().convert(input),
@@ -215,25 +725,115 @@ void main() {
     expect(Crc16Maxim().convert(input),
            CrcValue(BigInt.parse('44c2', radix:16)));
   });
+  test('Crc16MaximDow clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16MaximDow().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('44c2', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16MaximDow().convert('1234567890'.codeUnits));
+  });
   test('Crc16Mcrf4xx', () {
     expect(Crc16Mcrf4xx().convert(input),
            CrcValue(BigInt.parse('6f91', radix:16)));
+  });
+  test('Crc16Mcrf4xx clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Mcrf4xx().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('6f91', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Mcrf4xx().convert('1234567890'.codeUnits));
   });
   test('Crc16Modbus', () {
     expect(Crc16Modbus().convert(input),
            CrcValue(BigInt.parse('4b37', radix:16)));
   });
+  test('Crc16Modbus clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Modbus().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('4b37', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Modbus().convert('1234567890'.codeUnits));
+  });
   test('Crc16Nrsc5', () {
     expect(Crc16Nrsc5().convert(input),
            CrcValue(BigInt.parse('a066', radix:16)));
+  });
+  test('Crc16Nrsc5 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Nrsc5().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('a066', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Nrsc5().convert('1234567890'.codeUnits));
   });
   test('Crc16OpenSafetyA', () {
     expect(Crc16OpenSafetyA().convert(input),
            CrcValue(BigInt.parse('5d38', radix:16)));
   });
+  test('Crc16OpenSafetyA clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16OpenSafetyA().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('5d38', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16OpenSafetyA().convert('1234567890'.codeUnits));
+  });
   test('Crc16OpenSafetyB', () {
     expect(Crc16OpenSafetyB().convert(input),
            CrcValue(BigInt.parse('20fe', radix:16)));
+  });
+  test('Crc16OpenSafetyB clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16OpenSafetyB().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('20fe', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16OpenSafetyB().convert('1234567890'.codeUnits));
   });
   test('Crc16Profibus', () {
     expect(Crc16Profibus().convert(input),
@@ -241,9 +841,39 @@ void main() {
     expect(Crc16Iec611582().convert(input),
            CrcValue(BigInt.parse('a819', radix:16)));
   });
+  test('Crc16Profibus clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Profibus().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('a819', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Profibus().convert('1234567890'.codeUnits));
+  });
   test('Crc16Riello', () {
     expect(Crc16Riello().convert(input),
            CrcValue(BigInt.parse('63d0', radix:16)));
+  });
+  test('Crc16Riello clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Riello().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('63d0', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Riello().convert('1234567890'.codeUnits));
   });
   test('Crc16SpiFujitsu', () {
     expect(Crc16SpiFujitsu().convert(input),
@@ -251,17 +881,77 @@ void main() {
     expect(Crc16AugCcitt().convert(input),
            CrcValue(BigInt.parse('e5cc', radix:16)));
   });
+  test('Crc16SpiFujitsu clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16SpiFujitsu().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('e5cc', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16SpiFujitsu().convert('1234567890'.codeUnits));
+  });
   test('Crc16T10Dif', () {
     expect(Crc16T10Dif().convert(input),
            CrcValue(BigInt.parse('d0db', radix:16)));
+  });
+  test('Crc16T10Dif clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16T10Dif().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('d0db', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16T10Dif().convert('1234567890'.codeUnits));
   });
   test('Crc16Teledisk', () {
     expect(Crc16Teledisk().convert(input),
            CrcValue(BigInt.parse('fb3', radix:16)));
   });
+  test('Crc16Teledisk clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Teledisk().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('fb3', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Teledisk().convert('1234567890'.codeUnits));
+  });
   test('Crc16Tms37157', () {
     expect(Crc16Tms37157().convert(input),
            CrcValue(BigInt.parse('26b1', radix:16)));
+  });
+  test('Crc16Tms37157 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Tms37157().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('26b1', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Tms37157().convert('1234567890'.codeUnits));
   });
   test('Crc16Umts', () {
     expect(Crc16Umts().convert(input),
@@ -271,9 +961,39 @@ void main() {
     expect(Crc16Verifone().convert(input),
            CrcValue(BigInt.parse('fee8', radix:16)));
   });
+  test('Crc16Umts clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Umts().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('fee8', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Umts().convert('1234567890'.codeUnits));
+  });
   test('Crc16Usb', () {
     expect(Crc16Usb().convert(input),
            CrcValue(BigInt.parse('b4c8', radix:16)));
+  });
+  test('Crc16Usb clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Usb().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('b4c8', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Usb().convert('1234567890'.codeUnits));
   });
   test('Crc16Xmodem', () {
     expect(Crc16Xmodem().convert(input),
@@ -287,29 +1007,134 @@ void main() {
     expect(Crc16Zmodem().convert(input),
            CrcValue(BigInt.parse('31c3', radix:16)));
   });
+  test('Crc16Xmodem clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc16Xmodem().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('31c3', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc16Xmodem().convert('1234567890'.codeUnits));
+  });
   test('Crc24Ble', () {
     expect(Crc24Ble().convert(input),
            CrcValue(BigInt.parse('c25a56', radix:16)));
+  });
+  test('Crc24Ble clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc24Ble().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('c25a56', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc24Ble().convert('1234567890'.codeUnits));
   });
   test('Crc24FlexRayA', () {
     expect(Crc24FlexRayA().convert(input),
            CrcValue(BigInt.parse('7979bd', radix:16)));
   });
+  test('Crc24FlexRayA clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc24FlexRayA().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('7979bd', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc24FlexRayA().convert('1234567890'.codeUnits));
+  });
   test('Crc24FlexRayB', () {
     expect(Crc24FlexRayB().convert(input),
            CrcValue(BigInt.parse('1f23b8', radix:16)));
+  });
+  test('Crc24FlexRayB clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc24FlexRayB().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('1f23b8', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc24FlexRayB().convert('1234567890'.codeUnits));
   });
   test('Crc24Interlaken', () {
     expect(Crc24Interlaken().convert(input),
            CrcValue(BigInt.parse('b4f3e6', radix:16)));
   });
+  test('Crc24Interlaken clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc24Interlaken().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('b4f3e6', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc24Interlaken().convert('1234567890'.codeUnits));
+  });
   test('Crc24LteA', () {
     expect(Crc24LteA().convert(input),
            CrcValue(BigInt.parse('cde703', radix:16)));
   });
+  test('Crc24LteA clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc24LteA().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('cde703', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc24LteA().convert('1234567890'.codeUnits));
+  });
   test('Crc24LteB', () {
     expect(Crc24LteB().convert(input),
            CrcValue(BigInt.parse('23ef52', radix:16)));
+  });
+  test('Crc24LteB clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc24LteB().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('23ef52', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc24LteB().convert('1234567890'.codeUnits));
   });
   test('Crc24OpenPgp', () {
     expect(Crc24OpenPgp().convert(input),
@@ -317,9 +1142,39 @@ void main() {
     expect(Crc24().convert(input),
            CrcValue(BigInt.parse('21cf02', radix:16)));
   });
+  test('Crc24OpenPgp clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc24OpenPgp().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('21cf02', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc24OpenPgp().convert('1234567890'.codeUnits));
+  });
   test('Crc24Os9', () {
     expect(Crc24Os9().convert(input),
            CrcValue(BigInt.parse('200fa5', radix:16)));
+  });
+  test('Crc24Os9 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc24Os9().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('200fa5', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc24Os9().convert('1234567890'.codeUnits));
   });
   test('Crc32Aixm', () {
     expect(Crc32Aixm().convert(input),
@@ -327,15 +1182,60 @@ void main() {
     expect(Crc32Q().convert(input),
            CrcValue(BigInt.parse('3010bf7f', radix:16)));
   });
+  test('Crc32Aixm clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32Aixm().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('3010bf7f', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32Aixm().convert('1234567890'.codeUnits));
+  });
   test('Crc32Autosar', () {
     expect(Crc32Autosar().convert(input),
            CrcValue(BigInt.parse('1697d06a', radix:16)));
+  });
+  test('Crc32Autosar clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32Autosar().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('1697d06a', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32Autosar().convert('1234567890'.codeUnits));
   });
   test('Crc32Base91D', () {
     expect(Crc32Base91D().convert(input),
            CrcValue(BigInt.parse('87315576', radix:16)));
     expect(Crc32D().convert(input),
            CrcValue(BigInt.parse('87315576', radix:16)));
+  });
+  test('Crc32Base91D clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32Base91D().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('87315576', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32Base91D().convert('1234567890'.codeUnits));
   });
   test('Crc32Bzip2', () {
     expect(Crc32Bzip2().convert(input),
@@ -347,15 +1247,60 @@ void main() {
     expect(Crc32B().convert(input),
            CrcValue(BigInt.parse('fc891918', radix:16)));
   });
+  test('Crc32Bzip2 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32Bzip2().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('fc891918', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32Bzip2().convert('1234567890'.codeUnits));
+  });
   test('Crc32CDRomEdc', () {
     expect(Crc32CDRomEdc().convert(input),
            CrcValue(BigInt.parse('6ec2edc4', radix:16)));
+  });
+  test('Crc32CDRomEdc clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32CDRomEdc().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('6ec2edc4', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32CDRomEdc().convert('1234567890'.codeUnits));
   });
   test('Crc32Cksum', () {
     expect(Crc32Cksum().convert(input),
            CrcValue(BigInt.parse('765e7680', radix:16)));
     expect(Crc32Posix().convert(input),
            CrcValue(BigInt.parse('765e7680', radix:16)));
+  });
+  test('Crc32Cksum clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32Cksum().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('765e7680', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32Cksum().convert('1234567890'.codeUnits));
   });
   test('Crc32Iscsi', () {
     expect(Crc32Iscsi().convert(input),
@@ -368,6 +1313,21 @@ void main() {
            CrcValue(BigInt.parse('e3069283', radix:16)));
     expect(Crc32C().convert(input),
            CrcValue(BigInt.parse('e3069283', radix:16)));
+  });
+  test('Crc32Iscsi clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32Iscsi().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('e3069283', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32Iscsi().convert('1234567890'.codeUnits));
   });
   test('Crc32IsoHdlc', () {
     expect(Crc32IsoHdlc().convert(input),
@@ -383,21 +1343,96 @@ void main() {
     expect(Crc32Pkzip().convert(input),
            CrcValue(BigInt.parse('cbf43926', radix:16)));
   });
+  test('Crc32IsoHdlc clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32IsoHdlc().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('cbf43926', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32IsoHdlc().convert('1234567890'.codeUnits));
+  });
   test('Crc32JamCrc', () {
     expect(Crc32JamCrc().convert(input),
            CrcValue(BigInt.parse('340bc6d9', radix:16)));
+  });
+  test('Crc32JamCrc clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32JamCrc().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('340bc6d9', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32JamCrc().convert('1234567890'.codeUnits));
   });
   test('Crc32Mpeg2', () {
     expect(Crc32Mpeg2().convert(input),
            CrcValue(BigInt.parse('376e6e7', radix:16)));
   });
+  test('Crc32Mpeg2 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32Mpeg2().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('376e6e7', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32Mpeg2().convert('1234567890'.codeUnits));
+  });
   test('Crc32Xfer', () {
     expect(Crc32Xfer().convert(input),
            CrcValue(BigInt.parse('bd0be338', radix:16)));
   });
+  test('Crc32Xfer clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc32Xfer().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('bd0be338', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc32Xfer().convert('1234567890'.codeUnits));
+  });
   test('Crc40Gsm', () {
     expect(Crc40Gsm().convert(input),
            CrcValue(BigInt.parse('d4164fc646', radix:16)));
+  });
+  test('Crc40Gsm clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc40Gsm().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('d4164fc646', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc40Gsm().convert('1234567890'.codeUnits));
   });
   test('Crc64Ecma182', () {
     expect(Crc64Ecma182().convert(input),
@@ -405,18 +1440,78 @@ void main() {
     expect(Crc64().convert(input),
            CrcValue(BigInt.parse('6c40df5f0b497347', radix:16)));
   });
+  test('Crc64Ecma182 clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc64Ecma182().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('6c40df5f0b497347', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc64Ecma182().convert('1234567890'.codeUnits));
+  });
   test('Crc64GoIso', () {
     expect(Crc64GoIso().convert(input),
            CrcValue(BigInt.parse('b90956c775a41001', radix:16)));
   });
+  test('Crc64GoIso clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc64GoIso().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('b90956c775a41001', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc64GoIso().convert('1234567890'.codeUnits));
+  });
   test('Crc64WE', () {
     expect(Crc64WE().convert(input),
            CrcValue(BigInt.parse('62ec59e3f1a4f00a', radix:16)));
+  });
+  test('Crc64WE clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc64WE().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('62ec59e3f1a4f00a', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc64WE().convert('1234567890'.codeUnits));
   });
   test('Crc64Xz', () {
     expect(Crc64Xz().convert(input),
            CrcValue(BigInt.parse('995dc9bbdf1939fa', radix:16)));
     expect(Crc64GoEcma().convert(input),
            CrcValue(BigInt.parse('995dc9bbdf1939fa', radix:16)));
+  });
+  test('Crc64Xz clone', () {
+    final sink1 = FinalSink();
+    final crc1 = Crc64Xz().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('995dc9bbdf1939fa', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           Crc64Xz().convert('1234567890'.codeUnits));
   });
 }
