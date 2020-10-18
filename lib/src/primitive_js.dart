@@ -95,9 +95,9 @@ class NormalSinkInt extends NormalSink<int> {
 }
 
 class ReflectedSinkInt extends ReflectedSink<int> {
-  ReflectedSinkInt(List<int> table, int value, int finalMask,
-      Sink<CrcValue> outputSink, int width)
-      : super(table, reflectInt(value, width), finalMask, outputSink, width);
+  ReflectedSinkInt(int width, List<int> table, int value, int finalMask,
+      Sink<CrcValue> outputSink)
+      : super(width, table, reflectInt(value, width), finalMask, outputSink);
 
   void _crc8Loop(Iterable<int> chunk) {
     for (final b in chunk) {
@@ -119,6 +119,6 @@ class ReflectedSinkInt extends ReflectedSink<int> {
   @override
   ReflectedSinkInt split(Sink<CrcValue> outputSink) {
     return ReflectedSinkInt(
-        table, reflectInt(value, width), finalMask, outputSink, width);
+        width, table, reflectInt(value, width), finalMask, outputSink);
   }
 }

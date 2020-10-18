@@ -89,8 +89,21 @@ class FinalSink extends Sink<CrcValue> {
 
 /// Intermediate sink that performs the actual CRC calculation. It outputs to
 /// [FinalSink].
-abstract class CrcSink<T> extends ByteConversionSinkBase {
+abstract class CrcSink extends ByteConversionSinkBase {
   final int width;
+
+  CrcSink(this.width);
+
+  /// Updates the internal of this sink with [input].
+  void iterate(Iterable<int> input);
+
+  /// Copies the current state of the CRC calculation. The returned object will
+  /// output to [outputSink], which should be a [FinalSink].
+  CrcSink split(Sink<CrcValue> outputSink);
+}
+
+/// CRC calculation based on table lookup.
+abstract class ParametricCrcSink<T> extends CrcSink {
   final List<T> table;
   final T finalMask;
   final Sink<CrcValue> _outputSink;
@@ -98,9 +111,11 @@ abstract class CrcSink<T> extends ByteConversionSinkBase {
   T value;
   bool _closed;
 
-  CrcSink(this.table, this.value, this.finalMask, this._outputSink, this.width)
+  ParametricCrcSink(
+      int width, this.table, this.value, this.finalMask, this._outputSink)
       : _closed = false,
-        assert(value is int || value is BigInt) {
+        assert(value is int || value is BigInt),
+        super(width) {
     _loopFunction = selectLoopFunction();
   }
 
@@ -118,6 +133,9 @@ abstract class CrcSink<T> extends ByteConversionSinkBase {
   }
 
   @override
+  void iterate(Iterable<int> input) => _loopFunction(input);
+
+  @override
   void close() {
     if (!_closed) {
       _closed = true;
@@ -132,10 +150,6 @@ abstract class CrcSink<T> extends ByteConversionSinkBase {
     }
   }
 
-  /// Copies the current state of the CRC calculation. The returned object will
-  /// output to [outputSink], which should be a [FinalSink].
-  CrcSink<T> split(Sink<CrcValue> outputSink);
-
   CrcLoopFunction selectLoopFunction();
 }
 
@@ -149,10 +163,10 @@ typedef CrcLoopFunction = void Function(Iterable<int> chunk);
 ///
 // Note for maintainers: Try not to call any function in these loops. Function
 // calls require boxing and unboxing.
-abstract class NormalSink<T> extends CrcSink<T> {
+abstract class NormalSink<T> extends ParametricCrcSink<T> {
   NormalSink(
       List<T> table, T value, T finalMask, Sink<CrcValue> outputSink, int width)
-      : super(table, value, finalMask, outputSink, width);
+      : super(width, table, value, finalMask, outputSink);
 }
 
 /// A normal sink backed by BigInt values.
@@ -209,16 +223,16 @@ BigInt reflectBigInt(BigInt i, int width) {
 ///
 /// The specialized loop functions are meant to speed up calculations
 /// according to the width of the CRC value.
-abstract class ReflectedSink<T> extends CrcSink<T> {
-  ReflectedSink(List<T> table, T reflectedValue, T finalMask,
-      Sink<CrcValue> outputSink, int width)
-      : super(table, reflectedValue, finalMask, outputSink, width);
+abstract class ReflectedSink<T> extends ParametricCrcSink<T> {
+  ReflectedSink(int width, List<T> table, T reflectedValue, T finalMask,
+      Sink<CrcValue> outputSink)
+      : super(width, table, reflectedValue, finalMask, outputSink);
 }
 
 class ReflectedSinkBigInt extends ReflectedSink<BigInt> {
-  ReflectedSinkBigInt(List<BigInt> table, BigInt value, BigInt finalMask,
-      Sink<CrcValue> outputSink, int width)
-      : super(table, reflectBigInt(value, width), finalMask, outputSink, width);
+  ReflectedSinkBigInt(int width, List<BigInt> table, BigInt value,
+      BigInt finalMask, Sink<CrcValue> outputSink)
+      : super(width, table, reflectBigInt(value, width), finalMask, outputSink);
 
   void _crcLoop(Iterable<int> chunk) {
     for (final b in chunk) {
@@ -234,6 +248,6 @@ class ReflectedSinkBigInt extends ReflectedSink<BigInt> {
   @override
   ReflectedSinkBigInt split(Sink<CrcValue> outputSink) {
     return ReflectedSinkBigInt(
-        table, reflectBigInt(value, width), finalMask, outputSink, width);
+        width, table, reflectBigInt(value, width), finalMask, outputSink);
   }
 }
