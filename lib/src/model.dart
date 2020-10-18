@@ -217,31 +217,34 @@ class MultiCrc extends BaseCrc {
             _underlyingCrcs.map((c) => c.lengthInBits).reduce((a, b) => a + b));
 
   @override
-  ByteConversionSink startChunkedConversion(Sink<CrcValue> outputSink) =>
-      _MultiCrcSink(_underlyingCrcs, outputSink);
+  CrcSink startChunkedConversion(Sink<CrcValue> outputSink) {
+    final finalSinks = List.generate(_underlyingCrcs.length, (_) => FinalSink(),
+        growable: false);
+    final crcSinks =
+        List<CrcSink>.filled(_underlyingCrcs.length, null, growable: false);
+    for (var i = 0; i < _underlyingCrcs.length; ++i) {
+      crcSinks[i] = _underlyingCrcs[i].startChunkedConversion(finalSinks[i]);
+    }
+    return _MultiCrcSink(_underlyingCrcs, finalSinks, crcSinks, outputSink);
+  }
 }
 
-class _MultiCrcSink extends ByteConversionSinkBase {
+class _MultiCrcSink extends CrcSink {
   final Sink<CrcValue> outputSink;
-  final List<ParametricCrc> underlyingCrcs;
   final List<FinalSink> underlyingOutputs;
-  final List<ByteConversionSink> underlyingSinks;
+  final List<CrcSink> underlyingSinks;
+  final List<BaseCrc> underlyingCrcs;
 
-  _MultiCrcSink(this.underlyingCrcs, this.outputSink)
-      : underlyingOutputs = List.generate(
-            underlyingCrcs.length, (_) => FinalSink(),
-            growable: false),
-        underlyingSinks =
-            List.filled(underlyingCrcs.length, null, growable: false) {
-    for (var i = 0; i < underlyingCrcs.length; i++) {
-      underlyingSinks[i] =
-          underlyingCrcs[i].startChunkedConversion(underlyingOutputs[i]);
-    }
-  }
+  _MultiCrcSink(this.underlyingCrcs, this.underlyingOutputs,
+      this.underlyingSinks, this.outputSink)
+      : assert(underlyingCrcs.length == underlyingOutputs.length &&
+            underlyingCrcs.length == underlyingSinks.length),
+        super(
+            underlyingCrcs.map((c) => c.lengthInBits).reduce((a, b) => a + b));
 
   @override
-  void add(List<int> chunk) {
-    underlyingSinks.forEach((s) => s.add(chunk));
+  void iterateBytes(Iterable<int> chunk) {
+    underlyingSinks.forEach((s) => s.iterateBytes(chunk));
   }
 
   @override
@@ -253,5 +256,17 @@ class _MultiCrcSink extends ByteConversionSinkBase {
       ret = (ret << crc.lengthInBits) | underlyingOutputs[i].value.toBigInt();
     }
     outputSink.add(CrcValue(ret));
+  }
+
+  @override
+  _MultiCrcSink split(Sink<CrcValue> outputSink) {
+    final finalSinks = List.generate(underlyingCrcs.length, (_) => FinalSink(),
+        growable: false);
+    final crcSinks =
+        List<CrcSink>.filled(underlyingCrcs.length, null, growable: false);
+    for (var i = 0; i < underlyingSinks.length; ++i) {
+      crcSinks[i] = underlyingSinks[i].split(finalSinks[i]);
+    }
+    return _MultiCrcSink(underlyingCrcs, finalSinks, crcSinks, outputSink);
   }
 }
