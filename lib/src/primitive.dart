@@ -111,7 +111,7 @@ abstract class CrcSink<T> extends ByteConversionSinkBase {
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    _loopFunction(chunk, start, end);
+    _loopFunction(chunk.getRange(start, end));
     if (isLast) {
       close();
     }
@@ -139,7 +139,7 @@ abstract class CrcSink<T> extends ByteConversionSinkBase {
   CrcLoopFunction selectLoopFunction();
 }
 
-typedef CrcLoopFunction = void Function(List<int> chunk, int start, int end);
+typedef CrcLoopFunction = void Function(Iterable<int> chunk);
 
 /// "Normal" CRC routines where the high bits are shifted out to the left.
 ///
@@ -161,10 +161,10 @@ class NormalSinkBigInt extends NormalSink<BigInt> {
       Sink<CrcValue> outputSink, int width)
       : super(table, value, finalMask, outputSink, width);
 
-  void _crcLoop(List<int> chunk, int start, int end) {
+  void _crcLoop(Iterable<int> chunk) {
     final shiftWidth = width - 8;
     final mask = (BigInt.one << shiftWidth) - BigInt.one;
-    for (final b in chunk.getRange(start, end)) {
+    for (final b in chunk) {
       value = table[((value >> shiftWidth).toUnsigned(8).toInt() ^ b) & 0xFF] ^
           ((value & mask) << 8);
     }
@@ -220,8 +220,8 @@ class ReflectedSinkBigInt extends ReflectedSink<BigInt> {
       Sink<CrcValue> outputSink, int width)
       : super(table, reflectBigInt(value, width), finalMask, outputSink, width);
 
-  void _crcLoop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crcLoop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value.toUnsigned(8).toInt() ^ b) & 0xFF] ^ (value >> 8);
     }
   }

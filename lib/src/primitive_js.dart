@@ -40,34 +40,34 @@ class NormalSinkInt extends NormalSink<int> {
       Sink<CrcValue> outputSink, int width)
       : super(table, value, finalMask, outputSink, width);
 
-  void _crc8Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc8Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[value ^ b];
     }
   }
 
-  void _crc16Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc16Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value >> 8) ^ b] ^ ((value << 8) & 0xFFFF);
     }
   }
 
-  void _crc24Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc24Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value >> 16) ^ b] ^ ((value << 8) & 0xFFFFFF);
     }
   }
 
-  void _crc32Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc32Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value >> 24) ^ b] ^ ((value << 8) & 0xFFFFFFFF);
     }
   }
 
-  void _crcLoop(List<int> chunk, int start, int end) {
+  void _crcLoop(Iterable<int> chunk) {
     final shiftWidth = width - 8;
     final mask = (1 << width) - 1;
-    for (final b in chunk.getRange(start, end)) {
+    for (final b in chunk) {
       value = table[((value >> shiftWidth) ^ b) & 0xFF] ^ ((value << 8) & mask);
     }
   }
@@ -99,14 +99,14 @@ class ReflectedSinkInt extends ReflectedSink<int> {
       Sink<CrcValue> outputSink, int width)
       : super(table, reflectInt(value, width), finalMask, outputSink, width);
 
-  void _crc8Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc8Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[value ^ b];
     }
   }
 
-  void _crcLoop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crcLoop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value ^ b) & 0xFF] ^ ((value >> 8) & 0x00FFFFFF);
     }
   }
