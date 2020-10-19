@@ -14,50 +14,55 @@
 
 import 'dart:convert' show ByteConversionSinkBase;
 
+import 'package:crclib/src/primitive_js.dart'
+    if (dart.library.io) 'package:crclib/src/primitive_vm.dart'
+    show maxBitwiseOperationLengthInBits;
+
 /// Represents a CRC value. Objects of this class should only be tested for
-/// equality against [int] or [BigInt], and printed with [toString] or
-/// [toRadixString].
+/// equality against [int] or [BigInt], printed with [toString] or
+/// [toRadixString], or up-valued [toBigInt].
 class CrcValue {
-  final dynamic _value;
-  final int _width;
+  final int _intValue;
+  final BigInt _bigIntValue;
 
   // BigInt values are ensured to be non-negative. But int values can go
   // negative due to the shifts and xors affecting the most-significant bit.
-  CrcValue(this._width, this._value)
-      : assert(_value is int || (_value is BigInt && !_value.isNegative));
+  CrcValue(dynamic value)
+      : _intValue = (value is int) ? value : null,
+        _bigIntValue = (value is BigInt) ? value : null {
+    assert(_intValue != null ||
+        (_bigIntValue != null && !_bigIntValue.isNegative));
+  }
 
   @override
-  int get hashCode => _value.hashCode;
+  int get hashCode => (_intValue ?? _bigIntValue).hashCode;
 
   @override
   bool operator ==(Object other) {
-    if (other is CrcValue && _width == other._width) {
-      return this == other._value;
+    if (other is CrcValue) {
+      return toBigInt() == other.toBigInt();
     } else if (other is int) {
-      if (_value is int) {
-        return _value == other;
+      if (_intValue != null) {
+        return _intValue == other;
       }
-      return BigInt.from(other).toUnsigned(_width) == _value;
+      return BigInt.from(other).toUnsigned(maxBitwiseOperationLengthInBits()) ==
+          _bigIntValue;
     } else if (other is BigInt && !other.isNegative) {
-      if (_value is BigInt) {
-        return _value == other;
-      }
-      return BigInt.from(_value as int).toUnsigned(_width) == other;
+      return toBigInt() == other;
     }
     return false;
   }
 
   @override
-  String toString() {
-    return toRadixString(10);
-  }
+  String toString() => toRadixString(10);
 
-  String toRadixString(int radix) {
-    if (_value is int) {
-      return (_value as int).toRadixString(radix);
-    }
-    return (_value as BigInt).toRadixString(radix);
-  }
+  String toRadixString(int radix) => _intValue != null
+      ? _intValue.toRadixString(radix)
+      : _bigIntValue.toRadixString(radix);
+
+  BigInt toBigInt() =>
+      _bigIntValue ??
+      BigInt.from(_intValue).toUnsigned(maxBitwiseOperationLengthInBits());
 }
 
 /// Ultimate sink that stores the final CRC value.
@@ -84,32 +89,58 @@ class FinalSink extends Sink<CrcValue> {
 
 /// Intermediate sink that performs the actual CRC calculation. It outputs to
 /// [FinalSink].
-abstract class _CrcSink<T> extends ByteConversionSinkBase {
+abstract class CrcSink extends ByteConversionSinkBase {
+  final int width;
+
+  CrcSink(this.width);
+
+  @override
+  void add(List<int> input) => iterateBytes(input);
+
+  /// Updates the internal of this sink with [input].
+  void iterateBytes(Iterable<int> input);
+
+  void addZeros(int bytes) => iterateBytes(Iterable.generate(bytes, (_) => 0));
+
+  /// Copies the current state of the CRC calculation. The returned object will
+  /// output to [outputSink], which should be a [FinalSink].
+  CrcSink split(Sink<CrcValue> outputSink);
+}
+
+/// CRC calculation based on table lookup.
+abstract class ParametricCrcSink<T> extends CrcSink {
   final List<T> table;
   final T finalMask;
   final Sink<CrcValue> _outputSink;
   CrcLoopFunction _loopFunction;
   T value;
-  int width;
   bool _closed;
 
-  _CrcSink(this.table, this.value, this.finalMask, this._outputSink, this.width)
+  ParametricCrcSink(
+      int width, this.table, this.value, this.finalMask, this._outputSink)
       : _closed = false,
-        assert(value is int || value is BigInt) {
+        assert(value is int || value is BigInt),
+        super(width) {
     _loopFunction = selectLoopFunction();
   }
 
   @override
-  void add(List<int> chunk) {
-    addSlice(chunk, 0, chunk.length, false /* isLast */);
-  }
-
-  @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    _loopFunction(chunk, start, end);
+    iterateBytes(chunk.getRange(start, end));
     if (isLast) {
       close();
     }
+  }
+
+  @override
+  void iterateBytes(Iterable<int> input) => _loopFunction(input);
+
+  @override
+  void addZeros(int bytes) {
+    if (value == 0 || value == BigInt.zero) {
+      return;
+    }
+    return super.addZeros(bytes);
   }
 
   @override
@@ -118,10 +149,10 @@ abstract class _CrcSink<T> extends ByteConversionSinkBase {
       _closed = true;
       if (value is int) {
         var v = (value as int) ^ (finalMask as int);
-        _outputSink.add(CrcValue(width, v));
+        _outputSink.add(CrcValue(v));
       } else {
         var v = (value as BigInt) ^ (finalMask as BigInt);
-        _outputSink.add(CrcValue(width, v));
+        _outputSink.add(CrcValue(v));
       }
       _outputSink.close();
     }
@@ -130,7 +161,7 @@ abstract class _CrcSink<T> extends ByteConversionSinkBase {
   CrcLoopFunction selectLoopFunction();
 }
 
-typedef CrcLoopFunction = void Function(List<int> chunk, int start, int end);
+typedef CrcLoopFunction = void Function(Iterable<int> chunk);
 
 /// "Normal" CRC routines where the high bits are shifted out to the left.
 ///
@@ -140,10 +171,10 @@ typedef CrcLoopFunction = void Function(List<int> chunk, int start, int end);
 ///
 // Note for maintainers: Try not to call any function in these loops. Function
 // calls require boxing and unboxing.
-abstract class NormalSink<T> extends _CrcSink<T> {
+abstract class NormalSink<T> extends ParametricCrcSink<T> {
   NormalSink(
       List<T> table, T value, T finalMask, Sink<CrcValue> outputSink, int width)
-      : super(table, value, finalMask, outputSink, width);
+      : super(width, table, value, finalMask, outputSink);
 }
 
 /// A normal sink backed by BigInt values.
@@ -152,10 +183,10 @@ class NormalSinkBigInt extends NormalSink<BigInt> {
       Sink<CrcValue> outputSink, int width)
       : super(table, value, finalMask, outputSink, width);
 
-  void _crcLoop(List<int> chunk, int start, int end) {
+  void _crcLoop(Iterable<int> chunk) {
     final shiftWidth = width - 8;
     final mask = (BigInt.one << shiftWidth) - BigInt.one;
-    for (final b in chunk.getRange(start, end)) {
+    for (final b in chunk) {
       value = table[((value >> shiftWidth).toUnsigned(8).toInt() ^ b) & 0xFF] ^
           ((value & mask) << 8);
     }
@@ -164,6 +195,11 @@ class NormalSinkBigInt extends NormalSink<BigInt> {
   @override
   CrcLoopFunction selectLoopFunction() {
     return _crcLoop;
+  }
+
+  @override
+  NormalSinkBigInt split(Sink<CrcValue> outputSink) {
+    return NormalSinkBigInt(table, value, finalMask, outputSink, width);
   }
 }
 
@@ -195,19 +231,19 @@ BigInt reflectBigInt(BigInt i, int width) {
 ///
 /// The specialized loop functions are meant to speed up calculations
 /// according to the width of the CRC value.
-abstract class ReflectedSink<T> extends _CrcSink<T> {
-  ReflectedSink(List<T> table, T reflectedValue, T finalMask,
-      Sink<CrcValue> outputSink, int width)
-      : super(table, reflectedValue, finalMask, outputSink, width);
+abstract class ReflectedSink<T> extends ParametricCrcSink<T> {
+  ReflectedSink(int width, List<T> table, T reflectedValue, T finalMask,
+      Sink<CrcValue> outputSink)
+      : super(width, table, reflectedValue, finalMask, outputSink);
 }
 
 class ReflectedSinkBigInt extends ReflectedSink<BigInt> {
-  ReflectedSinkBigInt(List<BigInt> table, BigInt value, BigInt finalMask,
-      Sink<CrcValue> outputSink, int width)
-      : super(table, reflectBigInt(value, width), finalMask, outputSink, width);
+  ReflectedSinkBigInt(int width, List<BigInt> table, BigInt value,
+      BigInt finalMask, Sink<CrcValue> outputSink)
+      : super(width, table, reflectBigInt(value, width), finalMask, outputSink);
 
-  void _crcLoop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crcLoop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value.toUnsigned(8).toInt() ^ b) & 0xFF] ^ (value >> 8);
     }
   }
@@ -215,5 +251,11 @@ class ReflectedSinkBigInt extends ReflectedSink<BigInt> {
   @override
   CrcLoopFunction selectLoopFunction() {
     return _crcLoop;
+  }
+
+  @override
+  ReflectedSinkBigInt split(Sink<CrcValue> outputSink) {
+    return ReflectedSinkBigInt(
+        width, table, reflectBigInt(value, width), finalMask, outputSink);
   }
 }

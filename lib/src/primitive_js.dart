@@ -16,9 +16,9 @@ import 'dart:typed_data';
 import 'package:crclib/src/primitive.dart'
     show CrcLoopFunction, CrcValue, NormalSink, ReflectedSink, reflectInt;
 
-bool shouldUseBigInt(int width) {
+int maxBitwiseOperationLengthInBits() {
   // JavaScript only performs shifts and bitwise operators on 32-bit ints.
-  return width > 32;
+  return 32;
 }
 
 List<Comparable> createTable(int width) {
@@ -40,34 +40,34 @@ class NormalSinkInt extends NormalSink<int> {
       Sink<CrcValue> outputSink, int width)
       : super(table, value, finalMask, outputSink, width);
 
-  void _crc8Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc8Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[value ^ b];
     }
   }
 
-  void _crc16Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc16Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value >> 8) ^ b] ^ ((value << 8) & 0xFFFF);
     }
   }
 
-  void _crc24Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc24Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value >> 16) ^ b] ^ ((value << 8) & 0xFFFFFF);
     }
   }
 
-  void _crc32Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc32Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value >> 24) ^ b] ^ ((value << 8) & 0xFFFFFFFF);
     }
   }
 
-  void _crcLoop(List<int> chunk, int start, int end) {
+  void _crcLoop(Iterable<int> chunk) {
     final shiftWidth = width - 8;
     final mask = (1 << width) - 1;
-    for (final b in chunk.getRange(start, end)) {
+    for (final b in chunk) {
       value = table[((value >> shiftWidth) ^ b) & 0xFF] ^ ((value << 8) & mask);
     }
   }
@@ -84,24 +84,29 @@ class NormalSinkInt extends NormalSink<int> {
       case 8:
         return _crc8Loop;
       default:
-        return _crcLoop;  // XXX: unused.
+        return _crcLoop; // XXX: unused.
     }
+  }
+
+  @override
+  NormalSinkInt split(Sink<CrcValue> outputSink) {
+    return NormalSinkInt(table, value, finalMask, outputSink, width);
   }
 }
 
 class ReflectedSinkInt extends ReflectedSink<int> {
-  ReflectedSinkInt(List<int> table, int value, int finalMask,
-      Sink<CrcValue> outputSink, int width)
-      : super(table, reflectInt(value, width), finalMask, outputSink, width);
+  ReflectedSinkInt(int width, List<int> table, int value, int finalMask,
+      Sink<CrcValue> outputSink)
+      : super(width, table, reflectInt(value, width), finalMask, outputSink);
 
-  void _crc8Loop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crc8Loop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[value ^ b];
     }
   }
 
-  void _crcLoop(List<int> chunk, int start, int end) {
-    for (final b in chunk.getRange(start, end)) {
+  void _crcLoop(Iterable<int> chunk) {
+    for (final b in chunk) {
       value = table[(value ^ b) & 0xFF] ^ ((value >> 8) & 0x00FFFFFF);
     }
   }
@@ -109,5 +114,11 @@ class ReflectedSinkInt extends ReflectedSink<int> {
   @override
   CrcLoopFunction selectLoopFunction() {
     return (width <= 8) ? _crc8Loop : _crcLoop;
+  }
+
+  @override
+  ReflectedSinkInt split(Sink<CrcValue> outputSink) {
+    return ReflectedSinkInt(
+        width, table, reflectInt(value, width), finalMask, outputSink);
   }
 }

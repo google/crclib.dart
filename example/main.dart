@@ -25,6 +25,6 @@ void main() {
       Crc32Xz().convert(utf8.encode('123456789')) == 0xCBF43926,
       'Failed');
   assert(
-      Crc32Xz().convert(utf8.encode('123456789')) == CrcValue(32, 0xCBF43926),
+      Crc32Xz().convert(utf8.encode('123456789')) == CrcValue(0xCBF43926),
       'Failed');
 }

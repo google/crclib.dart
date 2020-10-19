@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert' show ByteConversionSink, Converter;
+import 'dart:convert'
+    show ByteConversionSink, ByteConversionSinkBase, Converter;
 
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:tuple/tuple.dart' show Tuple2;
@@ -21,7 +22,33 @@ import 'package:crclib/src/primitive.dart';
 import 'package:crclib/src/primitive_js.dart'
     if (dart.library.io) 'package:crclib/src/primitive_vm.dart';
 
-/// The base class of all CRC routines. The parameters are:
+bool shouldUseBigInt(int width) {
+  return width > maxBitwiseOperationLengthInBits();
+}
+
+/// The base class of all CRC routines.
+abstract class BaseCrc extends Converter<List<int>, CrcValue> {
+  final int _width;
+
+  const BaseCrc(this._width);
+
+  /// Returns the length in bits of returned CRC values.
+  int get lengthInBits => _width;
+
+  @override
+  CrcValue convert(List<int> input) {
+    final outputSink = FinalSink();
+    final inputSink = startChunkedConversion(outputSink);
+    inputSink.add(input);
+    inputSink.close();
+    return outputSink.value;
+  }
+
+  @override
+  CrcSink startChunkedConversion(Sink<CrcValue> output);
+}
+
+/// The table lookup implementation of all CRC routines. The parameters are:
 ///
 ///   * width: The bit count of the CRC value, eg 32, 16.
 ///   * polynomial: The generator polynomial in integer form, eg if the
@@ -33,12 +60,11 @@ import 'package:crclib/src/primitive_js.dart'
 ///       reflected.
 ///   * outputReflected: Whether the CRC value is reflected before being XOR'd
 ///       with finalMask.
-class ParametricCrc extends Converter<List<int>, CrcValue> {
+class ParametricCrc extends BaseCrc {
   static final Map<Tuple2<Comparable, bool>, List<Comparable>>
       _generatedTables = <Tuple2<Comparable, bool>, List<Comparable>>{};
 
   List<Comparable> _table;
-  final int _width;
   final Comparable _polynomial;
   final dynamic _initialValue;
   final dynamic _finalMask;
@@ -46,27 +72,28 @@ class ParametricCrc extends Converter<List<int>, CrcValue> {
   final bool _outputReflected;
 
   ParametricCrc(
-      this._width, this._polynomial, this._initialValue, this._finalMask,
+      int width, this._polynomial, this._initialValue, this._finalMask,
       {bool inputReflected = true, bool outputReflected = true})
       : _inputReflected = inputReflected,
         _outputReflected = outputReflected,
-        assert((!shouldUseBigInt(_width) &&
+        assert((!shouldUseBigInt(width) &&
                 _polynomial is int &&
                 _initialValue is int &&
                 _finalMask is int) ||
-            (shouldUseBigInt(_width) &&
+            (shouldUseBigInt(width) &&
                 _polynomial is BigInt &&
                 _initialValue is BigInt &&
-                _finalMask is BigInt)) {
+                _finalMask is BigInt)),
+        super(width) {
     // TODO
     assert(_inputReflected == _outputReflected,
         'Different input and output reflection flag is not supported yet.');
-    assert((_width % 8) == 0, 'Bit level checksums not supported yet.');
+    assert((width % 8) == 0, 'Bit level checksums not supported yet.');
 
     final key = Tuple2(_polynomial, _inputReflected);
     _table = _generatedTables[key];
     if (_table == null) {
-      _table = createByteLookupTable(_width, _polynomial, _inputReflected);
+      _table = createByteLookupTable(width, _polynomial, _inputReflected);
       _generatedTables[key] = _table;
     }
   }
@@ -81,15 +108,20 @@ class ParametricCrc extends Converter<List<int>, CrcValue> {
   }
 
   @override
-  ByteConversionSink startChunkedConversion(Sink<CrcValue> outputSink) {
-    ByteConversionSink ret;
+  ParametricCrcSink startChunkedConversion(Sink<CrcValue> outputSink) {
+    ParametricCrcSink ret;
     if (_inputReflected) {
       if (shouldUseBigInt(_width)) {
-        ret = ReflectedSinkBigInt(_table as List<BigInt>,
-            _initialValue as BigInt, _finalMask as BigInt, outputSink, _width);
+        ret = ReflectedSinkBigInt(_width, _table as List<BigInt>,
+            _initialValue as BigInt, _finalMask as BigInt, outputSink);
       } else {
-        ret = ReflectedSinkInt(_table as List<int>, _initialValue as int,
-            _finalMask as int, outputSink, _width);
+        ret = ReflectedSinkInt(
+          _width,
+          _table as List<int>,
+          _initialValue as int,
+          _finalMask as int,
+          outputSink,
+        );
       }
     } else {
       if (shouldUseBigInt(_width)) {
@@ -175,4 +207,69 @@ List<Comparable> _createByteLookupTableBigInt(
     }
   }
   return ret;
+}
+
+/// A dummy CRC function that concatenates a list of others. Other than
+/// [lengthInBits], other CRC parameters are not used and should not be trusted.
+class MultiCrc extends BaseCrc {
+  final List<ParametricCrc> _underlyingCrcs;
+
+  MultiCrc(this._underlyingCrcs)
+      : assert(_underlyingCrcs.isNotEmpty),
+        super(
+            _underlyingCrcs.map((c) => c.lengthInBits).reduce((a, b) => a + b));
+
+  @override
+  _MultiCrcSink startChunkedConversion(Sink<CrcValue> outputSink) {
+    final finalSinks = List.generate(_underlyingCrcs.length, (_) => FinalSink(),
+        growable: false);
+    final crcSinks =
+        List<CrcSink>.filled(_underlyingCrcs.length, null, growable: false);
+    for (var i = 0; i < _underlyingCrcs.length; ++i) {
+      crcSinks[i] = _underlyingCrcs[i].startChunkedConversion(finalSinks[i]);
+    }
+    return _MultiCrcSink(_underlyingCrcs, finalSinks, crcSinks, outputSink);
+  }
+}
+
+class _MultiCrcSink extends CrcSink {
+  final Sink<CrcValue> outputSink;
+  final List<FinalSink> underlyingOutputs;
+  final List<CrcSink> underlyingSinks;
+  final List<BaseCrc> underlyingCrcs;
+
+  _MultiCrcSink(this.underlyingCrcs, this.underlyingOutputs,
+      this.underlyingSinks, this.outputSink)
+      : assert(underlyingCrcs.length == underlyingOutputs.length &&
+            underlyingCrcs.length == underlyingSinks.length),
+        super(
+            underlyingCrcs.map((c) => c.lengthInBits).reduce((a, b) => a + b));
+
+  @override
+  void iterateBytes(Iterable<int> chunk) {
+    underlyingSinks.forEach((s) => s.iterateBytes(chunk));
+  }
+
+  @override
+  void close() {
+    underlyingSinks.forEach((s) => s.close());
+    var ret = BigInt.zero;
+    for (var i = 0; i < underlyingCrcs.length; ++i) {
+      var crc = underlyingCrcs[i];
+      ret = (ret << crc.lengthInBits) | underlyingOutputs[i].value.toBigInt();
+    }
+    outputSink.add(CrcValue(ret));
+  }
+
+  @override
+  _MultiCrcSink split(Sink<CrcValue> outputSink) {
+    final finalSinks = List.generate(underlyingCrcs.length, (_) => FinalSink(),
+        growable: false);
+    final crcSinks =
+        List<CrcSink>.filled(underlyingCrcs.length, null, growable: false);
+    for (var i = 0; i < underlyingSinks.length; ++i) {
+      crcSinks[i] = underlyingSinks[i].split(finalSinks[i]);
+    }
+    return _MultiCrcSink(underlyingCrcs, finalSinks, crcSinks, outputSink);
+  }
 }

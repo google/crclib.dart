@@ -188,7 +188,7 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 import 'package:crclib/catalog.dart';
-import 'package:crclib/src/primitive.dart' show CrcValue;
+import 'package:crclib/src/primitive.dart' show CrcValue, FinalSink;
 
 void main() {
   final input = utf8.encode('123456789');
@@ -198,15 +198,32 @@ void main() {
     sink.write('''
   test('${record.name}', () {
     expect(${record.name}().convert(input),
-           CrcValue(${record.width}, BigInt.parse('$check', radix:16)));
+           CrcValue(BigInt.parse('$check', radix:16)));
 ''');
     record.aliases.forEach((alias) {
       sink.write('''
     expect(${alias}().convert(input),
-           CrcValue(${record.width}, BigInt.parse('$check', radix:16)));
+           CrcValue(BigInt.parse('$check', radix:16)));
 ''');
     });
     sink.write('  });\n');
+    sink.write('''
+  test('${record.name} clone', () {
+    final sink1 = FinalSink();
+    final crc1 = ${record.name}().startChunkedConversion(sink1);
+    crc1.add('12345'.codeUnits);
+    final sink2 = FinalSink();
+    final crc2 = crc1.split(sink2);
+    crc1.add('6789'.codeUnits);
+    crc1.close();
+    expect(sink1.value,
+           CrcValue(BigInt.parse('$check', radix:16)));
+    crc2.add('67890'.codeUnits);
+    crc2.close();
+    expect(sink2.value,
+           ${record.name}().convert('1234567890'.codeUnits));
+  });
+''');
   });
   sink.write('}\n');
   await sink.flush();
