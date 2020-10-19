@@ -43,6 +43,9 @@ abstract class BaseCrc extends Converter<List<int>, CrcValue> {
     inputSink.close();
     return outputSink.value;
   }
+
+  @override
+  CrcSink startChunkedConversion(Sink<CrcValue> output);
 }
 
 /// The table lookup implementation of all CRC routines. The parameters are:
@@ -217,7 +220,7 @@ class MultiCrc extends BaseCrc {
             _underlyingCrcs.map((c) => c.lengthInBits).reduce((a, b) => a + b));
 
   @override
-  CrcSink startChunkedConversion(Sink<CrcValue> outputSink) {
+  _MultiCrcSink startChunkedConversion(Sink<CrcValue> outputSink) {
     final finalSinks = List.generate(_underlyingCrcs.length, (_) => FinalSink(),
         growable: false);
     final crcSinks =

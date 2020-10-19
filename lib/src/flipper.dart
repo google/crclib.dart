@@ -13,12 +13,13 @@
 // limitations under the License.
 
 import 'dart:collection' show ListMixin;
-import 'dart:typed_data' show Uint8List, Uint32List;
+import 'dart:typed_data' show Uint32List;
 
 import 'package:meta/meta.dart';
 
 import 'package:crclib/crclib.dart' show CrcValue;
 import 'package:crclib/src/model.dart' show BaseCrc;
+import 'package:crclib/src/primitive.dart' show CrcSink, FinalSink;
 
 abstract class _FixedList<T> extends ListMixin<T> {
   @override
@@ -304,6 +305,17 @@ class CrcFlipper {
         ?.toSet();
   }
 
+  Iterable<int> _allZeros(int bytes) sync* {
+    while (bytes-- > 0) {
+      yield 0;
+    }
+  }
+
+  void _feedZeros(CrcSink crc, int bytes) {
+    // TODO: If the CRC's initial value is zero, no need to do anything.
+    crc.iterateBytes(_allZeros(bytes));
+  }
+
   /// Returns a list of checksums corresponding to setting one bit a time.
   ///
   /// [lengthInBytes] is the length of the data. [positions] is the list of bit
@@ -311,15 +323,47 @@ class CrcFlipper {
   /// array of all zeros XOR with the checksum of that same array with the bit
   /// set will be returned.
   List<BigInt> _calculatePositionalChecksums(
-      int lengthInBytes, Iterable<int> positions) {
-    var blank = Uint8List(lengthInBytes);
-    var blankCrc = _crcFunction.convert(blank).toBigInt();
-    return positions.map((bitIndex) {
-      var byteIndex = bitIndex ~/ 8;
-      blank[byteIndex] = 1 << (bitIndex % 8);
-      var ret = _crcFunction.convert(blank).toBigInt() ^ blankCrc;
-      blank[byteIndex] = 0;
-      return ret;
-    }).toList(growable: false);
+      int lengthInBytes, List<int> positions) {
+    if (positions.isEmpty) {
+      return [];
+    }
+
+    final sorted = List.generate(positions.length, (i) => i);
+    sorted.sort((a, b) => positions[a] - positions[b]);
+
+    var bytesProcessed = 0;
+    final blankSink = FinalSink();
+    final blankCrc = _crcFunction.startChunkedConversion(blankSink);
+    final ret = List<BigInt>.filled(positions.length, null, growable: false);
+    for (var i = 0; i < sorted.length; ++i) {
+      final positionIndex = sorted[i];
+      final bitPosition = positions[positionIndex];
+      final positionInBytes = bitPosition ~/ 8;
+      final deltaInBytes = positionInBytes - bytesProcessed;
+      if (deltaInBytes > 0) {
+        _feedZeros(blankCrc, deltaInBytes);
+        bytesProcessed += deltaInBytes;
+      }
+      final singleBitChecksum = FinalSink();
+      final singleBitCrc = blankCrc.split(singleBitChecksum);
+      singleBitCrc.add([1 << (bitPosition % 8)]);
+      final remainingZeros = lengthInBytes - bytesProcessed - 1;
+      if (remainingZeros > 0) {
+        singleBitCrc.iterateBytes(_allZeros(remainingZeros));
+      }
+      singleBitCrc.close();
+      ret[i] = singleBitChecksum.value.toBigInt();
+    }
+    if (bytesProcessed < lengthInBytes) {
+      // The blank CRC needs more zeros.
+      _feedZeros(blankCrc, lengthInBytes - bytesProcessed);
+      bytesProcessed += lengthInBytes - bytesProcessed;
+    }
+    blankCrc.close();
+    final blankValue = blankSink.value.toBigInt();
+    for (var i = 0; i < ret.length; ++i) {
+      ret[i] ^= blankValue;
+    }
+    return ret;
   }
 }
