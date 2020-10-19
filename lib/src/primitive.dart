@@ -100,6 +100,8 @@ abstract class CrcSink extends ByteConversionSinkBase {
   /// Updates the internal of this sink with [input].
   void iterateBytes(Iterable<int> input);
 
+  void addZeros(int bytes) => iterateBytes(Iterable.generate(bytes, (_) => 0));
+
   /// Copies the current state of the CRC calculation. The returned object will
   /// output to [outputSink], which should be a [FinalSink].
   CrcSink split(Sink<CrcValue> outputSink);
@@ -132,6 +134,14 @@ abstract class ParametricCrcSink<T> extends CrcSink {
 
   @override
   void iterateBytes(Iterable<int> input) => _loopFunction(input);
+
+  @override
+  void addZeros(int bytes) {
+    if (value == 0 || value == BigInt.zero) {
+      return;
+    }
+    return super.addZeros(bytes);
+  }
 
   @override
   void close() {

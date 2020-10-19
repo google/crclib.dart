@@ -305,17 +305,6 @@ class CrcFlipper {
         ?.toSet();
   }
 
-  Iterable<int> _allZeros(int bytes) sync* {
-    while (bytes-- > 0) {
-      yield 0;
-    }
-  }
-
-  void _feedZeros(CrcSink crc, int bytes) {
-    // TODO: If the CRC's initial value is zero, no need to do anything.
-    crc.iterateBytes(_allZeros(bytes));
-  }
-
   /// Returns a list of checksums corresponding to setting one bit a time.
   ///
   /// [lengthInBytes] is the length of the data. [positions] is the list of bit
@@ -341,7 +330,7 @@ class CrcFlipper {
       final positionInBytes = bitPosition ~/ 8;
       final deltaInBytes = positionInBytes - bytesProcessed;
       if (deltaInBytes > 0) {
-        _feedZeros(blankCrc, deltaInBytes);
+        blankCrc.addZeros(deltaInBytes);
         bytesProcessed += deltaInBytes;
       }
       final singleBitChecksum = FinalSink();
@@ -349,14 +338,14 @@ class CrcFlipper {
       singleBitCrc.add([1 << (bitPosition % 8)]);
       final remainingZeros = lengthInBytes - bytesProcessed - 1;
       if (remainingZeros > 0) {
-        singleBitCrc.iterateBytes(_allZeros(remainingZeros));
+        singleBitCrc.addZeros(remainingZeros);
       }
       singleBitCrc.close();
       ret[i] = singleBitChecksum.value.toBigInt();
     }
     if (bytesProcessed < lengthInBytes) {
       // The blank CRC needs more zeros.
-      _feedZeros(blankCrc, lengthInBytes - bytesProcessed);
+      blankCrc.addZeros(lengthInBytes - bytesProcessed);
       bytesProcessed += lengthInBytes - bytesProcessed;
     }
     blankCrc.close();
