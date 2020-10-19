@@ -246,6 +246,9 @@ class _MultiCrcSink extends CrcSink {
   }
 
   @override
+  void addZeros(int bytes) => underlyingSinks.forEach((s) => s.addZeros(bytes));
+
+  @override
   void close() {
     underlyingSinks.forEach((s) => s.close());
     var ret = BigInt.zero;
