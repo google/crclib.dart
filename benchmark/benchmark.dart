@@ -18,7 +18,7 @@ import 'package:crclib/crclib.dart';
 import 'package:crclib/catalog.dart';
 
 class CrcSink extends Sink<CrcValue> {
-  CrcValue value;
+  CrcValue? value;
 
   @override
   void add(CrcValue i) {

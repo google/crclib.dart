@@ -22,16 +22,15 @@ import 'package:crclib/src/primitive_js.dart'
 /// equality against [int] or [BigInt], printed with [toString] or
 /// [toRadixString], or up-valued [toBigInt].
 class CrcValue {
-  final int _intValue;
-  final BigInt _bigIntValue;
+  final int? _intValue;
+  final BigInt? _bigIntValue;
 
   // BigInt values are ensured to be non-negative. But int values can go
   // negative due to the shifts and xors affecting the most-significant bit.
   CrcValue(dynamic value)
       : _intValue = (value is int) ? value : null,
         _bigIntValue = (value is BigInt) ? value : null {
-    assert(_intValue != null ||
-        (_bigIntValue != null && !_bigIntValue.isNegative));
+    assert(_intValue != null || !_bigIntValue!.isNegative);
   }
 
   @override
@@ -57,21 +56,20 @@ class CrcValue {
   String toString() => toRadixString(10);
 
   String toRadixString(int radix) => _intValue != null
-      ? _intValue.toRadixString(radix)
-      : _bigIntValue.toRadixString(radix);
+      ? _intValue!.toRadixString(radix)
+      : _bigIntValue!.toRadixString(radix);
 
   BigInt toBigInt() =>
       _bigIntValue ??
-      BigInt.from(_intValue).toUnsigned(maxBitwiseOperationLengthInBits());
+      BigInt.from(_intValue!).toUnsigned(maxBitwiseOperationLengthInBits());
 }
 
 /// Ultimate sink that stores the final CRC value.
 class FinalSink extends Sink<CrcValue> {
-  CrcValue _value;
+  CrcValue? _value;
 
   CrcValue get value {
-    assert(_value != null);
-    return _value;
+    return _value!;
   }
 
   @override
@@ -112,7 +110,7 @@ abstract class ParametricCrcSink<T> extends CrcSink {
   final List<T> table;
   final T finalMask;
   final Sink<CrcValue> _outputSink;
-  CrcLoopFunction _loopFunction;
+  late CrcLoopFunction _loopFunction;
   T value;
   bool _closed;
 
