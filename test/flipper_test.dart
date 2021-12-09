@@ -167,6 +167,13 @@ void main() {
             () => testFlipper(crc, '1234', 16, 31, CrcValue(0xba55)));
       });
     });
+    test('no flipping required', () {
+      final crc = Crc16();
+      final data = '123456789'.codeUnits;
+      final value = crc.convert(data);
+      final flipper = CrcFlipper(crc);
+      expect(flipper.flipWithData(data, Set<int>(), value), Set<int>());
+    });
     test('fun', () {
       var inputMessage =
           'flipping lowercases to uppercases like mama pig making hot pancakes '

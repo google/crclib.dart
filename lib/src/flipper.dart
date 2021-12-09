@@ -279,11 +279,11 @@ class CrcFlipper {
   /// function provided to this instance.
   Set<int>? flipWithValue(CrcValue value, int lengthInBytes,
       Iterable<int> allowedPositions, CrcValue target) {
-    if (allowedPositions.isEmpty) {
-      return null;
-    }
     if (value == target) {
       return Set<int>();
+    }
+    if (allowedPositions.isEmpty) {
+      return null;
     }
     var lengthInBits = lengthInBytes * 8;
     if (allowedPositions.any((i) => i < 0 || i >= lengthInBits)) {
