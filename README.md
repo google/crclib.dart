@@ -51,7 +51,7 @@ snippet below is taken from [test/flipper_test.dart](test/flipper_test.dart).
           .toSet();
       var flipper = CrcFlipper(Crc64());
       var solution = flipper.flipWithData(inputMessage.codeUnits, positions,
-          CrcValue(BigInt.parse('DEADBEEFCAFEBABE', radix: 16)));
+          CrcValue(BigInt.parse('DEADBEEFCAFEBABE', radix: 16)))!;
       var tmp = List.of(inputMessage.codeUnits, growable: false);
       solution.forEach((bitPosition) {
         var mask = 1 << (bitPosition % 8);

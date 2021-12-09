@@ -22,7 +22,7 @@ import 'package:crclib/src/flipper.dart';
 
 void expectSolution(int width, List<BigInt> checksums, BigInt target) {
   var matrix = generateAugmentedMatrix(width, checksums, target);
-  var selected = solveAugmentedMatrix(matrix);
+  var selected = solveAugmentedMatrix(matrix)!;
 
   var calculated = 0;
   for (var i = 0; i < checksums.length; ++i) {
@@ -45,7 +45,7 @@ void testFlipper(
   var flipper = CrcFlipper(crc);
   var data = Uint8List.fromList(input.codeUnits);
   var positions = flipper.flipWithData(
-      data, List.generate(high - low + 1, (i) => i + low).toSet(), target);
+      data, List.generate(high - low + 1, (i) => i + low).toSet(), target)!;
   expect(positions, isNotNull);
   expect(positions, isNotEmpty);
   expect(positions.length, lessThanOrEqualTo(crc.lengthInBits));
@@ -167,6 +167,13 @@ void main() {
             () => testFlipper(crc, '1234', 16, 31, CrcValue(0xba55)));
       });
     });
+    test('no flipping required', () {
+      final crc = Crc16();
+      final data = '123456789'.codeUnits;
+      final value = crc.convert(data);
+      final flipper = CrcFlipper(crc);
+      expect(flipper.flipWithData(data, Set<int>(), value), Set<int>());
+    });
     test('fun', () {
       var inputMessage =
           'flipping lowercases to uppercases like mama pig making hot pancakes '
@@ -185,7 +192,7 @@ void main() {
       var flipper = CrcFlipper(crc);
       var target = BigInt.parse('DEADBEEFCAFEBABE', radix: 16);
       var solution = flipper.flipWithData(
-          inputMessage.codeUnits, positions, CrcValue(target));
+          inputMessage.codeUnits, positions, CrcValue(target))!;
       var tmp = List.of(inputMessage.codeUnits, growable: false);
       solution.forEach((bitPosition) {
         var mask = 1 << (bitPosition % 8);
@@ -213,7 +220,7 @@ void main() {
         var flipper = CrcFlipper(crc);
         var target = BigInt.parse('DEADCAFEBEEF', radix: 16);
         var solution = flipper.flipWithData(
-            inputMessage.codeUnits, positions, CrcValue(target));
+            inputMessage.codeUnits, positions, CrcValue(target))!;
         var tmp = List.of(inputMessage.codeUnits, growable: false);
         solution.forEach((bitPosition) {
           var mask = 1 << (bitPosition % 8);
@@ -244,7 +251,7 @@ void main() {
             .toBigInt();
         var flipper = CrcFlipper(crc);
         var solution = flipper.flipWithData(
-            inputMessage.codeUnits, positions, CrcValue(target));
+            inputMessage.codeUnits, positions, CrcValue(target))!;
         var tmp = List.of(inputMessage.codeUnits, growable: false);
         solution.forEach((bitPosition) {
           var mask = 1 << (bitPosition % 8);

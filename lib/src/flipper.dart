@@ -39,7 +39,7 @@ abstract class _FixedList<T> extends ListMixin<T> {
 /// are zeroed. This class is mainly used in [BitMatrix].
 @visibleForTesting
 class BitArray extends _FixedList<bool> {
-  Uint32List _vector;
+  late Uint32List _vector;
   final int _bitCount;
 
   BitArray(this._bitCount) {
@@ -93,7 +93,7 @@ class BitArray extends _FixedList<bool> {
 class BitMatrix extends _FixedList<BitArray> {
   final int _colCount;
   final int _rowCount;
-  List<BitArray> _rows;
+  late List<BitArray> _rows;
 
   BitMatrix(this._rowCount, this._colCount) {
     if (_rowCount < 0 || _colCount < 0) {
@@ -222,7 +222,7 @@ BitMatrix generateAugmentedMatrix(
 /// If there is no solutions, `null` is returned. Otherwise, only one solution
 /// is returned. All free variables are zeros.
 @visibleForTesting
-BitArray solveAugmentedMatrix(BitMatrix matrix) {
+BitArray? solveAugmentedMatrix(BitMatrix matrix) {
   var pivotPositions = matrix.eliminate();
   var height = matrix.length;
   var width = matrix[0].length - 1; // Minus the augmented column.
@@ -260,7 +260,7 @@ class CrcFlipper {
   /// [allowedPositions]. And [target] is the desired value after flipping.
   ///
   /// See [flipWithValue].
-  Set<int> flipWithData(
+  Set<int>? flipWithData(
       List<int> data, Iterable<int> allowedPositions, CrcValue target) {
     return flipWithValue(
         _crcFunction.convert(data), data.length, allowedPositions, target);
@@ -277,13 +277,13 @@ class CrcFlipper {
   ///
   /// Throws [ArgumentError] if [target] does not have the same width as the CRC
   /// function provided to this instance.
-  Set<int> flipWithValue(CrcValue value, int lengthInBytes,
+  Set<int>? flipWithValue(CrcValue value, int lengthInBytes,
       Iterable<int> allowedPositions, CrcValue target) {
-    if (allowedPositions.isEmpty) {
-      return null;
-    }
     if (value == target) {
       return Set<int>();
+    }
+    if (allowedPositions.isEmpty) {
+      return null;
     }
     var lengthInBits = lengthInBytes * 8;
     if (allowedPositions.any((i) => i < 0 || i >= lengthInBits)) {
@@ -323,8 +323,7 @@ class CrcFlipper {
     var bytesProcessed = 0;
     final blankSink = FinalSink();
     final blankCrc = _crcFunction.startChunkedConversion(blankSink);
-    final ret = List<BigInt>.filled(positions.length, null, growable: false);
-    for (var i = 0; i < sorted.length; ++i) {
+    final ret = List<BigInt>.generate(sorted.length, (i) {
       final positionIndex = sorted[i];
       final bitPosition = positions[positionIndex];
       final positionInBytes = bitPosition ~/ 8;
@@ -341,8 +340,8 @@ class CrcFlipper {
         singleBitCrc.addZeros(remainingZeros);
       }
       singleBitCrc.close();
-      ret[i] = singleBitChecksum.value.toBigInt();
-    }
+      return singleBitChecksum.value.toBigInt();
+    }, growable: false);
     if (bytesProcessed < lengthInBytes) {
       // The blank CRC needs more zeros.
       blankCrc.addZeros(lengthInBytes - bytesProcessed);

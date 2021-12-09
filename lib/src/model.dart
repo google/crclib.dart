@@ -64,7 +64,7 @@ class ParametricCrc extends BaseCrc {
   static final Map<Tuple2<Comparable, bool>, List<Comparable>>
       _generatedTables = <Tuple2<Comparable, bool>, List<Comparable>>{};
 
-  List<Comparable> _table;
+  late List<Comparable> _table;
   final Comparable _polynomial;
   final dynamic _initialValue;
   final dynamic _finalMask;
@@ -91,11 +91,8 @@ class ParametricCrc extends BaseCrc {
     assert((width % 8) == 0, 'Bit level checksums not supported yet.');
 
     final key = Tuple2(_polynomial, _inputReflected);
-    _table = _generatedTables[key];
-    if (_table == null) {
-      _table = createByteLookupTable(width, _polynomial, _inputReflected);
-      _generatedTables[key] = _table;
-    }
+    _table = _generatedTables.putIfAbsent(
+        key, () => createByteLookupTable(width, _polynomial, _inputReflected));
   }
 
   @override
@@ -223,11 +220,9 @@ class MultiCrc extends BaseCrc {
   _MultiCrcSink startChunkedConversion(Sink<CrcValue> outputSink) {
     final finalSinks = List.generate(_underlyingCrcs.length, (_) => FinalSink(),
         growable: false);
-    final crcSinks =
-        List<CrcSink>.filled(_underlyingCrcs.length, null, growable: false);
-    for (var i = 0; i < _underlyingCrcs.length; ++i) {
-      crcSinks[i] = _underlyingCrcs[i].startChunkedConversion(finalSinks[i]);
-    }
+    final crcSinks = List<CrcSink>.generate(_underlyingCrcs.length,
+        (i) => _underlyingCrcs[i].startChunkedConversion(finalSinks[i]),
+        growable: false);
     return _MultiCrcSink(_underlyingCrcs, finalSinks, crcSinks, outputSink);
   }
 }
@@ -268,11 +263,9 @@ class _MultiCrcSink extends CrcSink {
   _MultiCrcSink split(Sink<CrcValue> outputSink) {
     final finalSinks = List.generate(underlyingCrcs.length, (_) => FinalSink(),
         growable: false);
-    final crcSinks =
-        List<CrcSink>.filled(underlyingCrcs.length, null, growable: false);
-    for (var i = 0; i < underlyingSinks.length; ++i) {
-      crcSinks[i] = underlyingSinks[i].split(finalSinks[i]);
-    }
+    final crcSinks = List<CrcSink>.generate(
+        underlyingCrcs.length, (i) => underlyingSinks[i].split(finalSinks[i]),
+        growable: false);
     return _MultiCrcSink(underlyingCrcs, finalSinks, crcSinks, outputSink);
   }
 }

@@ -51,12 +51,11 @@ class Record {
 
   Record(this.width, int poly, int init, this.refin, this.refout, int xorout,
       int check, this.name,
-      {this.residue = 0, this.aliases = const []}) {
-    this.poly = BigInt.from(poly).toUnsigned(width);
-    this.init = BigInt.from(init).toUnsigned(width);
-    this.xorout = BigInt.from(xorout).toUnsigned(width);
-    this.check = BigInt.from(check).toUnsigned(width);
-  }
+      {this.residue = 0, this.aliases = const []})
+      : poly = BigInt.from(poly).toUnsigned(width),
+        init = BigInt.from(init).toUnsigned(width),
+        xorout = BigInt.from(xorout).toUnsigned(width),
+        check = BigInt.from(check).toUnsigned(width);
 }
 
 String pathTo(String directory, String name) {
