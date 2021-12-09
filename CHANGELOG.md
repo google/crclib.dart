@@ -1,3 +1,6 @@
+#### 3.0.0 - 2021-12-09
+  * **Breaking change:** Only support Dart 2.12+, with nullsafety.
+
 #### 2.0.0 - 2020-09-20
   * **Breaking change:** Only support Dart 2+.
   * **Breaking change:** CRC result is now a `CrcValue`, not `int` so that we
